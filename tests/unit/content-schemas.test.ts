@@ -18,7 +18,6 @@ describe('content schemas', () => {
     expect(projects.length).toBeGreaterThanOrEqual(1);
     for (const project of projects) {
       expect(project.id).toBeTruthy();
-      expect(['public', 'nda']).toContain(project.visibility);
       expect(['cloth', 'leather', 'paper', 'wax']).toContain(
         project.spine.material,
       );

@@ -92,7 +92,7 @@ const OpengraphImage = async (): Promise<ImageResponse> => {
             opacity: 0.5,
           }}
         >
-          <span>{profile.city}</span>
+          <span>{profile.location}</span>
           <span style={{ color: '#c77a3b' }}>Evening edition</span>
         </div>
       </div>

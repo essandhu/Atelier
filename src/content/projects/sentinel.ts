@@ -26,7 +26,6 @@ export const sentinelProject: Project = {
       href: 'https://github.com/essandhu/Sentinel',
     },
   ],
-  visibility: 'public',
   spine: {
     color: '#5a3d8a',
     material: 'cloth',

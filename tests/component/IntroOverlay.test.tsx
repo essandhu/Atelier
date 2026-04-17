@@ -8,7 +8,7 @@ const profile: Profile = {
   name: 'Test Person',
   role: 'Test Role',
   positioning: 'Test positioning copy.',
-  city: 'Testville',
+  location: 'Testville',
   githubUsername: 'test',
   contacts: { email: 'test@example.com', links: [] },
 };

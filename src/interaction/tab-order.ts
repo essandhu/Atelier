@@ -18,7 +18,12 @@ export const TAB_ORDER = {
   // need to renumber the projectBook range. Keep ahead of projectBookStart.
   liveActivityBook: 10,
   projectBookStart: 100,
-  projectBookMax: 104,
+  // Inclusive upper bound — MAX_BOOKS = projectBookMax - projectBookStart + 1.
+  // Currently 100..107 ⇒ 8 books. Widen further by bumping this constant; the
+  // eventsFeed slot sits at 200 so there's room for ≤ 100 books before
+  // collision, but the desk metaphor breaks long before then (see
+  // docs/architecture.md §5 for the bookshelf Post-V1 plan).
+  projectBookMax: 107,
   // RESERVED — same story for the events feed: rendered inline inside
   // LiveActivityBook in V1, not yet a Tab stop. Wired here so the eventual
   // EventsFeedPanel (Section 8 / Post-V1) drops in without churn.

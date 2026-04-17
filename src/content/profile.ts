@@ -2,7 +2,7 @@ export interface Profile {
   name: string;
   role: string;
   positioning: string;
-  city: string;
+  location: string;
   githubUsername: string;
   contacts: {
     email: string;
@@ -16,7 +16,7 @@ export const profile: Profile = {
   role: 'Software Developer',
   positioning:
     'Building component libraries, design systems, and full-stack apps that ship. Currently pursuing an M.S. in Computer Science at UT Austin while contributing to open-source developer tooling.',
-  city: 'Irving, TX',
+  location: 'Texas, United States',
   // Phase 1 acceptance test pulls live 90-day contributions for this account.
   githubUsername: process.env.GITHUB_USERNAME ?? 'essandhu',
   contacts: {

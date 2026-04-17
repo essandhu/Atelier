@@ -39,33 +39,16 @@ const groupSkills = (skills: Skill[]): Record<string, Skill[]> => {
 };
 
 const renderProjectItem = (project: Project): React.ReactElement => {
-  const isNda = project.visibility === 'nda';
   return (
     <article
       key={project.id}
       className="border-l-2 pl-5 py-2"
-      style={{
-        borderColor: isNda
-          ? 'color-mix(in oklab, var(--color-ink) 25%, transparent)'
-          : 'var(--accent)',
-      }}
+      style={{ borderColor: 'var(--accent)' }}
     >
       <header className="flex flex-wrap items-baseline gap-3">
         <h3 className="text-xl font-semibold tracking-tight">
           {project.title}
         </h3>
-        {isNda && (
-          <span
-            className="text-[0.7rem] uppercase tracking-[0.18em] px-2 py-0.5 rounded-sm"
-            style={{
-              background:
-                'color-mix(in oklab, var(--color-ink) 12%, transparent)',
-              color: 'color-mix(in oklab, var(--color-ink) 70%, transparent)',
-            }}
-          >
-            Under NDA
-          </span>
-        )}
       </header>
       <p className="mt-1 text-sm opacity-70 italic">{project.role}</p>
       <p className="mt-3 leading-relaxed">{project.summary}</p>
@@ -160,7 +143,7 @@ const FallbackPage = async (): Promise<React.ReactElement> => {
         <p className="mt-6 text-lg leading-relaxed max-w-[52ch]">
           {profile.positioning}
         </p>
-        <p className="mt-8 text-sm opacity-60">{profile.city}</p>
+        <p className="mt-8 text-sm opacity-60">{profile.location}</p>
         <ul className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
           <li>
             <a

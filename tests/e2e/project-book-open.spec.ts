@@ -6,7 +6,6 @@ test.beforeEach(async ({ page }) => {
 });
 
 const PUBLIC_ID = 'atelier';
-const NDA_ID = 'nda-engagement';
 const MAX_TABS = 15;
 
 const tabUntil = async (page: Page, testId: string): Promise<void> => {
@@ -92,32 +91,5 @@ test.describe('project book open flow', () => {
         !/DialogContent.*requires a `DialogTitle`/i.test(msg),
     );
     expect(nonResourceErrors).toEqual([]);
-  });
-
-  test('opening the NDA project shows the sealed variant and hides disclosable text', async ({
-    page,
-  }) => {
-    await page.goto('/');
-    await expect(page.getByTestId('scene-canvas')).toBeAttached({
-      timeout: 15_000,
-    });
-    await expect(page.getByTestId('project-book-stack')).toBeAttached({
-      timeout: 15_000,
-    });
-
-    await page.evaluate(() => document.body.focus());
-    await tabUntil(page, `project-book-${NDA_ID}`);
-    await page.keyboard.press('Enter');
-
-    const sealedPanel = page.getByTestId(`sealed-project-panel-${NDA_ID}`);
-    await expect(sealedPanel).toBeVisible({ timeout: 1500 });
-
-    // Ensure the public project's problem text is NOT leaked here. Pick a phrase
-    // unique to the public project (title keyword) to avoid false negatives.
-    const publicPhrase = 'reading room where projects sit on a desk';
-    await expect(page.getByText(publicPhrase)).toHaveCount(0);
-
-    await page.keyboard.press('Escape');
-    await expect(sealedPanel).toBeHidden({ timeout: 1500 });
   });
 });

@@ -1,8 +1,5 @@
 import { z } from 'zod';
 
-export const ProjectVisibility = z.enum(['public', 'nda']);
-export type ProjectVisibility = z.infer<typeof ProjectVisibility>;
-
 export const Project = z.object({
   id: z.string(),
   title: z.string(),
@@ -29,7 +26,6 @@ export const Project = z.object({
       }),
     )
     .default([]),
-  visibility: ProjectVisibility,
   spine: z.object({
     color: z.string(),
     material: z.enum(['cloth', 'leather', 'paper', 'wax']),

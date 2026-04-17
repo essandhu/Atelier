@@ -98,14 +98,13 @@ test('After dismissing intro, Tab walks skip → project books in TAB_ORDER sequ
 
   // With the intro dismissed, intro-begin and webcam-toggle are unmounted, so
   // the next positive-tabIndex stop is the first project book (tabIndex=100).
-  // V1 ships five project books; walk them in numerical tabIndex order.
-  // Order mirrors src/content/projects/index.ts.
+  // Walk the stack in numerical tabIndex order; this list mirrors
+  // src/content/projects/index.ts.
   const expectedBookIds = [
     'atelier',
     'synapse-oms',
     'sentinel',
     'aurora-ui',
-    'nda-engagement',
   ] as const;
   for (const id of expectedBookIds) {
     await page.keyboard.press('Tab');
@@ -113,7 +112,8 @@ test('After dismissing intro, Tab walks skip → project books in TAB_ORDER sequ
     expect(focused).toBe(`project-book-${id}`);
   }
 
-  // Sanity: the stack caps at 5 (TAB_ORDER.projectBookMax - projectBookStart + 1).
+  // Sanity: stack visibly renders exactly the projects in index.ts (up to the
+  // MAX_BOOKS cap in src/scene/project-books/stack-config.ts — currently 8).
   const stackCount = await page.getByTestId(/^project-book-/).count();
   // +1 for the invisible `project-book-stack` sentinel <div>.
   expect(stackCount).toBe(expectedBookIds.length + 1);

@@ -34,7 +34,6 @@ export const atelierProject: Project = {
       href: 'https://github.com/essandhu/atelier',
     },
   ],
-  visibility: 'public',
   spine: {
     color: '#8a3e1f',
     material: 'leather',

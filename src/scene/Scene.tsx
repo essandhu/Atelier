@@ -23,7 +23,6 @@ import { LiveRegion } from '@/ui/a11y/LiveRegion';
 import { IntroOverlay } from '@/ui/intro/IntroOverlay';
 import { StartupSequence } from '@/ui/intro/StartupSequence';
 import { ProjectPanel } from '@/ui/panels/ProjectPanel';
-import { SealedProjectPanel } from '@/ui/panels/SealedProjectPanel';
 import {
   timeOfDayStore,
   useResolvedTimeOfDay,
@@ -59,9 +58,6 @@ const ActivePanelRenderer = ({
   const project = projects.find((p) => p.id === activePanel.id);
   if (!project) return null;
   const close = () => sceneStore.getState().close();
-  if (project.visibility === 'nda') {
-    return <SealedProjectPanel project={project} onClose={close} />;
-  }
   return <ProjectPanel project={project} onClose={close} />;
 };
 

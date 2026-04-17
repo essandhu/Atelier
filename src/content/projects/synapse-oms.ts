@@ -31,7 +31,6 @@ export const synapseOmsProject: Project = {
       href: 'https://github.com/essandhu/SynapseOMS',
     },
   ],
-  visibility: 'public',
   spine: {
     color: '#1d2a3a',
     material: 'paper',

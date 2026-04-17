@@ -27,7 +27,6 @@ export const auroraUiProject: Project = {
       href: 'https://github.com/essandhu/aurora-ui',
     },
   ],
-  visibility: 'public',
   spine: {
     color: '#2a6a5e',
     material: 'leather',

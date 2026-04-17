@@ -19,7 +19,6 @@ export interface PanelFrameProps {
   titleId: string;
   ariaLabel: string;
   onClose: () => void;
-  muted?: boolean;
 }
 
 const overlayStyle: React.CSSProperties = {
@@ -50,7 +49,6 @@ export const PanelFrame = ({
   titleId,
   ariaLabel,
   onClose,
-  muted = false,
 }: PanelFrameProps): React.ReactElement => {
   const phase = useSceneStore((s) => s.phase);
   const isOpen = phase === 'opening' || phase === 'open';
@@ -130,9 +128,7 @@ export const PanelFrame = ({
                 border: narrow
                   ? 'none'
                   : '1px solid rgba(232, 226, 212, 0.18)',
-                backgroundColor: muted
-                  ? 'rgba(15, 12, 10, 0.96)'
-                  : 'rgba(15, 12, 10, 0.92)',
+                backgroundColor: 'rgba(15, 12, 10, 0.92)',
                 color: 'var(--color-ink)',
                 boxShadow: narrow ? 'none' : '0 12px 48px rgba(0,0,0,0.45)',
                 position: 'relative',

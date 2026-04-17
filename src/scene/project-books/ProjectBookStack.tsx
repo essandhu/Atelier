@@ -5,19 +5,24 @@ import type { Project } from '@/content/projects/schemas';
 import { ProjectBook } from '@/scene/project-books/ProjectBook';
 import { spineDimensions } from '@/scene/project-books/spine-design';
 import { TAB_ORDER } from '@/interaction/tab-order';
+import {
+  BOOK_GAP,
+  MAX_BOOKS,
+  STACK_CENTER_X,
+  STACK_Z,
+} from '@/scene/project-books/stack-config';
 
-const MAX_BOOKS = TAB_ORDER.projectBookMax - TAB_ORDER.projectBookStart + 1;
-const BOOK_GAP = 0.004; // 4 mm between spines
-
-// Position the stack on the right half of the desk, behind the live-activity-book.
-// Desk surface y ≈ 0.75 + 0.04 (half-height) ≈ 0.79.
-const STACK_Y = 0.79 + spineDimensions({
-  color: '#000',
-  material: 'cloth',
-  accent: false,
-}).height / 2;
-const STACK_CENTER_X = 0.48;
-const STACK_Z = -0.05;
+// Desk surface y ≈ 0.75 + 0.04 (half-height) ≈ 0.79. Computed here rather than
+// in stack-config so the dimension source (spine-design) stays in the scene
+// layer and stack-config stays a pure-constants module.
+const STACK_Y =
+  0.79 +
+  spineDimensions({
+    color: '#000',
+    material: 'cloth',
+    accent: false,
+  }).height /
+    2;
 
 export interface ProjectBookStackProps {
   projects: Project[];
