@@ -51,3 +51,6 @@ public/scene/**/*.draco.glb
 
 # Keep visual regression baselines tracked per ADR-011
 !tests/e2e/visual/baseline/*.png
+
+# docs
+docs/
