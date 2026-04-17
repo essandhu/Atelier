@@ -15,6 +15,13 @@ import { useNewEvents } from '@/scene/live-activity/useNewEvents';
 import { Lightmaps } from '@/scene/lighting/Lightmaps';
 import { RealTimeLights } from '@/scene/lighting/RealTimeLights';
 import { Effects } from '@/scene/post-processing/Effects';
+import { ProjectBookStack } from '@/scene/project-books/ProjectBookStack';
+import { useGlobalKeyboard } from '@/interaction/keyboard';
+import { usePointerMissed } from '@/interaction/pointer';
+import { sceneStore, useSceneStore } from '@/store/scene-store';
+import { LiveRegion } from '@/ui/a11y/LiveRegion';
+import { ProjectPanel } from '@/ui/panels/ProjectPanel';
+import { SealedProjectPanel } from '@/ui/panels/SealedProjectPanel';
 import { timeOfDayStore } from '@/store/time-of-day-store';
 import { track } from '@/telemetry/events';
 import type { GithubSnapshot } from '@/data/github/types';
@@ -29,21 +36,41 @@ export interface SceneProps {
 
 const SURFACE_COLOR = '#0f0c0a';
 
+const ActivePanelRenderer = ({
+  projects,
+}: {
+  projects: Project[];
+}): React.ReactElement | null => {
+  const activePanel = useSceneStore((s) => s.activePanel);
+  const phase = useSceneStore((s) => s.phase);
+  if (!activePanel || activePanel.kind !== 'project') return null;
+  if (phase === 'closed') return null;
+  const project = projects.find((p) => p.id === activePanel.id);
+  if (!project) return null;
+  const close = () => sceneStore.getState().close();
+  if (project.visibility === 'nda') {
+    return <SealedProjectPanel project={project} onClose={close} />;
+  }
+  return <ProjectPanel project={project} onClose={close} />;
+};
+
 export const Scene = (props: SceneProps): React.ReactElement => {
   const lampBulbRef = useRef<THREE.Mesh>(null);
   const pageMeshRef = useRef<THREE.Mesh>(null);
   const firedRef = useRef(false);
 
-  // Phase 4 will consume these; keeping the reads explicit so tree-shaking
-  // doesn't drop them from the server-rendered payload.
+  // profile is consumed by downstream phases; retaining a void-read keeps the
+  // SSR payload present until Phase 5 uses it.
   void props.profile;
-  void props.projects;
 
   const events = useMemo(
     () => props.githubSnapshot?.events ?? [],
     [props.githubSnapshot],
   );
   const newEventIds = useNewEvents(events);
+
+  useGlobalKeyboard();
+  const onPointerMissed = usePointerMissed();
 
   useEffect(() => {
     timeOfDayStore.getState().ensureInitialized();
@@ -60,34 +87,40 @@ export const Scene = (props: SceneProps): React.ReactElement => {
   };
 
   return (
-    <Canvas
-      shadows
-      dpr={[1, 2]}
-      gl={{ antialias: true, alpha: false }}
-      onCreated={onCanvasCreated}
-      style={{ width: '100%', height: '100dvh', display: 'block' }}
-      data-testid="scene-canvas"
-    >
-      <color attach="background" args={[SURFACE_COLOR]} />
-      <Suspense fallback={null}>
-        <Camera />
-        <Lightmaps state="evening">
-          <RealTimeLights state="evening" />
-          <Desk />
-          <Window />
-          <Lamp ref={lampBulbRef} />
-          <LiveActivityBook
-            snapshot={props.githubSnapshot}
-            state="evening"
-            newEventIds={newEventIds}
-            pageFlutterRef={pageMeshRef}
-          />
-          <DustMotes state="evening" />
-          <LampBreathe targetRef={lampBulbRef} state="evening" />
-          <PageFlutter targetRef={pageMeshRef} />
-        </Lightmaps>
-        <Effects state="evening" reducedMotion={false} />
-      </Suspense>
-    </Canvas>
+    <>
+      <Canvas
+        shadows
+        dpr={[1, 2]}
+        gl={{ antialias: true, alpha: false }}
+        onCreated={onCanvasCreated}
+        onPointerMissed={onPointerMissed}
+        style={{ width: '100%', height: '100dvh', display: 'block' }}
+        data-testid="scene-canvas"
+      >
+        <color attach="background" args={[SURFACE_COLOR]} />
+        <Suspense fallback={null}>
+          <Camera />
+          <Lightmaps state="evening">
+            <RealTimeLights state="evening" />
+            <Desk />
+            <Window />
+            <Lamp ref={lampBulbRef} />
+            <LiveActivityBook
+              snapshot={props.githubSnapshot}
+              state="evening"
+              newEventIds={newEventIds}
+              pageFlutterRef={pageMeshRef}
+            />
+            <ProjectBookStack projects={props.projects} />
+            <DustMotes state="evening" />
+            <LampBreathe targetRef={lampBulbRef} state="evening" />
+            <PageFlutter targetRef={pageMeshRef} />
+          </Lightmaps>
+          <Effects state="evening" reducedMotion={false} />
+        </Suspense>
+      </Canvas>
+      <LiveRegion projects={props.projects} />
+      <ActivePanelRenderer projects={props.projects} />
+    </>
   );
 };
