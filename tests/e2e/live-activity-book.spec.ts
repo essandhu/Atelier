@@ -1,4 +1,9 @@
 import { expect, test } from '@playwright/test';
+import { dismissIntro } from './fixtures/dismiss-intro';
+
+test.beforeEach(async ({ page }) => {
+  await dismissIntro(page);
+});
 
 test('live-activity-book renders fixture events and contribution grid', async ({
   page,

@@ -3,6 +3,7 @@ import { Analytics } from '@vercel/analytics/react';
 import { loadProfile } from '@/data/loaders/projects';
 import { WebVitalsReporter } from '@/telemetry/web-vitals';
 import { AccentProvider } from '@/ui/controls/AccentProvider';
+import { SkipToFallback } from '@/ui/a11y/SkipToFallback';
 import './globals.css';
 
 export const metadata: Metadata = (() => {
@@ -37,11 +38,13 @@ const RootLayout = ({ children }: RootLayoutProps): React.ReactElement => (
       />
     </head>
     <body>
-      <AccentProvider>{children}</AccentProvider>
       <noscript>
+        <meta httpEquiv="refresh" content="0; url=/fallback" />
         You need JavaScript to view the interactive scene. Visit{' '}
         <a href="/fallback">the text version</a>.
       </noscript>
+      <SkipToFallback />
+      <AccentProvider>{children}</AccentProvider>
       <WebVitalsReporter />
       <Analytics />
     </body>

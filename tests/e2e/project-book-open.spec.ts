@@ -1,4 +1,9 @@
 import { expect, test, type Page } from '@playwright/test';
+import { dismissIntro } from './fixtures/dismiss-intro';
+
+test.beforeEach(async ({ page }) => {
+  await dismissIntro(page);
+});
 
 const PUBLIC_ID = 'atelier';
 const NDA_ID = 'sealed-fintech';

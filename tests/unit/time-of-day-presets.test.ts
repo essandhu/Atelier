@@ -37,4 +37,57 @@ describe('time-of-day presets', () => {
       expect(entry.liveActivityEmissionWarmth).toBeLessThanOrEqual(1);
     }
   });
+
+  describe('per-state tuning (P5-03)', () => {
+    it('morning lamp is dimmer than evening lamp', () => {
+      expect(presets.morning.lampIntensity).toBeLessThan(
+        presets.evening.lampIntensity,
+      );
+      expect(presets.morning.lampIntensity).toBeLessThanOrEqual(
+        presets.evening.lampIntensity / 2,
+      );
+    });
+
+    it('day window is brighter than evening window', () => {
+      expect(presets.day.windowIntensity).toBeGreaterThan(
+        presets.evening.windowIntensity,
+      );
+    });
+
+    it('night bloom is stronger than evening bloom', () => {
+      expect(presets.night.bloomStrength).toBeGreaterThan(
+        presets.evening.bloomStrength,
+      );
+    });
+
+    it('night keeps bloomFocus on the lamp', () => {
+      expect(presets.night.bloomFocus).toBe('lamp');
+    });
+
+    it('morning and day focus bloom on the window', () => {
+      expect(presets.morning.bloomFocus).toBe('window');
+      expect(presets.day.bloomFocus).toBe('window');
+    });
+
+    it('night has more dust-mote density than day', () => {
+      expect(presets.night.dustMoteOpacity).toBeGreaterThan(
+        presets.day.dustMoteOpacity,
+      );
+    });
+
+    it('morning leans cool, night leans warm for live-activity emission', () => {
+      expect(presets.morning.liveActivityEmissionWarmth).toBeLessThan(0);
+      expect(presets.night.liveActivityEmissionWarmth).toBeGreaterThan(0.3);
+    });
+
+    it('each of the four presets has a distinct lightmap url', () => {
+      const urls = new Set([
+        presets.morning.lightmap,
+        presets.day.lightmap,
+        presets.evening.lightmap,
+        presets.night.lightmap,
+      ]);
+      expect(urls.size).toBe(4);
+    });
+  });
 });

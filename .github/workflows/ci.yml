@@ -126,3 +126,32 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - run: pnpm bundle:verify
+
+  lighthouse:
+    name: Lighthouse (night state)
+    if: github.event_name == 'pull_request'
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Wait for Vercel preview
+        id: preview
+        uses: patrickedqvist/wait-for-vercel-preview@v1.3.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          max_timeout: 300
+      - name: Run Lighthouse CI
+        env:
+          PREVIEW_URL: ${{ steps.preview.outputs.url }}
+        run: |
+          pnpm dlx @lhci/cli@0.13.x autorun \
+            --collect.url="${PREVIEW_URL}/?time=night" \
+            --config=./lighthouserc.json

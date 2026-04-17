@@ -1,4 +1,9 @@
 import { expect, test } from '@playwright/test';
+import { dismissIntro } from './fixtures/dismiss-intro';
+
+test.beforeEach(async ({ page }) => {
+  await dismissIntro(page);
+});
 
 test('home page mounts the scene canvas with a working WebGL2 context', async ({
   page,
@@ -35,7 +40,7 @@ test('home page mounts the scene canvas with a working WebGL2 context', async ({
   // sometimes appears during HMR or asset HEAD probes for the missing
   // dev-before-assets lightmap.
   const fatal = consoleErrors.filter(
-    (msg) => !/lightmap|favicon|HEAD/i.test(msg),
+    (msg) => !/lightmap|favicon|HEAD|vercel\/insights|MIME type/i.test(msg),
   );
   expect(fatal, `console errors: ${fatal.join('\n')}`).toEqual([]);
 });

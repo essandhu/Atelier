@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import {
   Bloom,
   ChromaticAberration,
@@ -8,7 +9,7 @@ import {
 } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 import * as THREE from 'three';
-import { presets } from '@/time-of-day/presets';
+import { effectsParamsFor } from '@/scene/post-processing/effects-tuning';
 import type { TimeOfDayState } from '@/time-of-day/types';
 
 export interface EffectsProps {
@@ -16,33 +17,34 @@ export interface EffectsProps {
   reducedMotion: boolean;
 }
 
-const CA_OFFSET = new THREE.Vector2(0.0006, 0.0012);
-
-const luminanceThresholdFor = (focus: 'lamp' | 'window' | 'both'): number => {
-  if (focus === 'lamp') return 0.85;
-  if (focus === 'window') return 0.6;
-  return 0.5;
-};
-
 export const Effects = ({
   state,
+  reducedMotion,
 }: EffectsProps): React.ReactElement => {
-  const preset = presets[state];
+  const params = effectsParamsFor(state, reducedMotion);
+  const caOffset = useMemo(
+    () => new THREE.Vector2(params.caOffset[0], params.caOffset[1]),
+    [params.caOffset],
+  );
   return (
     <EffectComposer>
       <Bloom
-        intensity={preset.bloomStrength}
-        luminanceThreshold={luminanceThresholdFor(preset.bloomFocus)}
-        luminanceSmoothing={0.3}
+        intensity={params.bloomStrength}
+        luminanceThreshold={params.luminanceThreshold}
+        luminanceSmoothing={reducedMotion ? 0.1 : 0.3}
         mipmapBlur
       />
       <ChromaticAberration
-        offset={CA_OFFSET}
+        offset={caOffset}
         radialModulation={false}
         modulationOffset={0}
         blendFunction={BlendFunction.NORMAL}
       />
-      <Noise opacity={0.06} blendFunction={BlendFunction.OVERLAY} premultiply />
+      <Noise
+        opacity={params.noiseOpacity}
+        blendFunction={BlendFunction.OVERLAY}
+        premultiply
+      />
     </EffectComposer>
   );
 };

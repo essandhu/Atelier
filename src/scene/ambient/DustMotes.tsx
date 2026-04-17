@@ -1,10 +1,12 @@
 'use client';
 
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { presets } from '@/time-of-day/presets';
 import type { TimeOfDayState } from '@/time-of-day/types';
+import { prefsStore } from '@/store/prefs-store';
+import { ambientAmplitudeFor } from '@/scene/ambient/damping';
 
 interface DustMotesProps {
   state: TimeOfDayState;
@@ -48,6 +50,16 @@ const buildSpriteTexture = (): THREE.Texture => {
 export const DustMotes = ({ state }: DustMotesProps): React.ReactElement => {
   const opacity = presets[state].dustMoteOpacity;
   const ref = useRef<THREE.Points>(null);
+  const reducedMotionRef = useRef<boolean>(
+    prefsStore.getState().reducedMotion,
+  );
+
+  useEffect(() => {
+    reducedMotionRef.current = prefsStore.getState().reducedMotion;
+    return prefsStore.subscribe((s) => {
+      reducedMotionRef.current = s.reducedMotion;
+    });
+  }, []);
 
   const { geometry, sprite, phases } = useMemo(() => {
     const positions = new Float32Array(COUNT * 3);
@@ -69,10 +81,12 @@ export const DustMotes = ({ state }: DustMotesProps): React.ReactElement => {
     const attr = points.geometry.attributes.position as THREE.BufferAttribute;
     const arr = attr.array as Float32Array;
     const t = performance.now() * 0.001;
+    const velocity = ambientAmplitudeFor(reducedMotionRef.current, VELOCITY);
+    const sway = ambientAmplitudeFor(reducedMotionRef.current, 0.0002);
     for (let i = 0; i < COUNT; i++) {
       const idx = i * 3;
-      arr[idx + 1] += VELOCITY * delta;
-      arr[idx + 0] += Math.sin(t + phases[i]) * 0.0002;
+      arr[idx + 1] += velocity * delta;
+      arr[idx + 0] += Math.sin(t + phases[i]) * sway;
       if (arr[idx + 1] > Y_TOP) {
         arr[idx + 1] = Y_BOTTOM;
         arr[idx + 0] = (Math.random() - 0.5) * VOLUME[0];

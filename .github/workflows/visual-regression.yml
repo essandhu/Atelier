@@ -1,0 +1,58 @@
+name: Visual Regression
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+# Gate PR merges on per-state screenshot diffs. Runs against the Vercel
+# preview URL so the bake uses a real GPU-accelerated build, not CI's
+# SwiftShader fallback. The workflow is opt-in: it only activates when
+# ATELIER_VISUAL_REGRESSION is set (CI sets it by default here).
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '9'
+  ATELIER_VISUAL_REGRESSION: '1'
+
+jobs:
+  visual:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Wait for Vercel preview
+        id: preview
+        uses: patrickedqvist/wait-for-vercel-preview@v1.3.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          max_timeout: 300
+
+      - name: Run visual regression suite
+        env:
+          PLAYWRIGHT_TEST_BASE_URL: ${{ steps.preview.outputs.url }}
+        run: pnpm exec playwright test tests/e2e/visual/hero-states.spec.ts
+
+      - name: Upload diffs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-diffs
+          path: |
+            test-results/**/*.png
+            playwright-report/
+          retention-days: 7

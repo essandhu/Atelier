@@ -6,6 +6,12 @@ import type { TimeOfDayState } from '@/time-of-day/types';
 
 export type Event =
   | { name: 'scene.loaded'; at: number; state: TimeOfDayState }
+  | {
+      name: 'scene.startup_completed';
+      state: TimeOfDayState;
+      reducedMotion: boolean;
+      durationMs: number;
+    }
   | { name: 'panel.opened'; projectId: string }
   | { name: 'panel.closed'; projectId: string; dwellMs: number }
   | { name: 'webcam.opted_in' }

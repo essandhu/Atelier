@@ -1,0 +1,145 @@
+'use client';
+
+import { useRef, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { usePrefsStore, prefsStore } from '@/store/prefs-store';
+import { Button } from '@/ui/primitives/button';
+import { WebcamToggle } from '@/ui/controls/WebcamToggle';
+import { TAB_ORDER } from '@/interaction/tab-order';
+import { durations, easings } from '@/ui/motion/tokens';
+import type { Profile } from '@/content/profile';
+
+export interface IntroOverlayProps {
+  profile: Profile;
+  onDismiss?: () => void;
+}
+
+export const IntroOverlay = ({
+  profile,
+  onDismiss,
+}: IntroOverlayProps): React.ReactElement | null => {
+  const hasSeenIntro = usePrefsStore((s) => s.hasSeenIntro);
+  const reducedMotion = usePrefsStore((s) => s.reducedMotion);
+  const beginRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    beginRef.current?.focus({ preventScroll: true });
+  }, []);
+
+  if (hasSeenIntro) return null;
+
+  const handleBegin = (): void => {
+    prefsStore.getState().dismissIntro();
+    onDismiss?.();
+  };
+
+  const animationDuration = reducedMotion ? 0.08 : durations.slow / 1000;
+
+  return (
+    <motion.aside
+      data-testid="intro-overlay"
+      data-reduced-motion={reducedMotion}
+      aria-labelledby="intro-title"
+      role="region"
+      initial={
+        reducedMotion
+          ? { opacity: 0 }
+          : { opacity: 0, y: 24 }
+      }
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
+        duration: animationDuration,
+        ease: reducedMotion ? 'linear' : easings.uiIn,
+      }}
+      style={{
+        position: 'fixed',
+        left: '1.5rem',
+        bottom: '1.5rem',
+        zIndex: 40,
+        maxWidth: 'min(28rem, calc(100vw - 3rem))',
+        padding: '1.5rem 1.5rem 1.25rem',
+        borderRadius: '0.5rem',
+        border: '1px solid rgba(232, 226, 212, 0.16)',
+        background: 'rgba(15, 12, 10, 0.88)',
+        backdropFilter: 'blur(8px)',
+        color: 'var(--color-ink)',
+        boxShadow: '0 12px 48px rgba(0,0,0,0.45)',
+      }}
+    >
+      <h1
+        id="intro-title"
+        style={{
+          fontSize: '1.65rem',
+          fontWeight: 600,
+          letterSpacing: '-0.01em',
+          margin: 0,
+          lineHeight: 1.1,
+        }}
+      >
+        {profile.name}
+      </h1>
+      <p
+        style={{
+          marginTop: '0.25rem',
+          fontSize: '0.9rem',
+          opacity: 0.8,
+        }}
+      >
+        {profile.role}
+      </p>
+      <p
+        style={{
+          marginTop: '0.875rem',
+          fontSize: '0.95rem',
+          lineHeight: 1.55,
+          opacity: 0.92,
+        }}
+      >
+        {profile.positioning}
+      </p>
+
+      <div
+        style={{
+          marginTop: '1.25rem',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.5rem',
+        }}
+      >
+        <p
+          style={{
+            fontSize: '0.75rem',
+            opacity: 0.6,
+            margin: 0,
+            letterSpacing: '0.01em',
+          }}
+        >
+          Optional: opt in to head-tracked parallax.
+        </p>
+        <WebcamToggle />
+      </div>
+
+      <div
+        style={{
+          marginTop: '1.5rem',
+          display: 'flex',
+          justifyContent: 'flex-end',
+        }}
+      >
+        <Button
+          ref={beginRef}
+          tabIndex={TAB_ORDER.introBeginButton}
+          onClick={handleBegin}
+          variant="default"
+          data-testid="intro-begin"
+          style={{
+            background: 'var(--accent)',
+            color: 'var(--accent-fg)',
+          }}
+        >
+          Begin
+        </Button>
+      </div>
+    </motion.aside>
+  );
+};

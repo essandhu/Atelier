@@ -20,9 +20,20 @@ import { useGlobalKeyboard } from '@/interaction/keyboard';
 import { usePointerMissed } from '@/interaction/pointer';
 import { sceneStore, useSceneStore } from '@/store/scene-store';
 import { LiveRegion } from '@/ui/a11y/LiveRegion';
+import { IntroOverlay } from '@/ui/intro/IntroOverlay';
+import { StartupSequence } from '@/ui/intro/StartupSequence';
 import { ProjectPanel } from '@/ui/panels/ProjectPanel';
 import { SealedProjectPanel } from '@/ui/panels/SealedProjectPanel';
-import { timeOfDayStore } from '@/store/time-of-day-store';
+import {
+  timeOfDayStore,
+  useResolvedTimeOfDay,
+} from '@/store/time-of-day-store';
+import {
+  prefsStore,
+  subscribeToReducedMotion,
+  usePrefsStore,
+} from '@/store/prefs-store';
+import { resolve } from '@/time-of-day/resolve';
 import { track } from '@/telemetry/events';
 import type { GithubSnapshot } from '@/data/github/types';
 import type { Profile } from '@/content/profile';
@@ -54,14 +65,50 @@ const ActivePanelRenderer = ({
   return <ProjectPanel project={project} onClose={close} />;
 };
 
+const ResolvedSceneContent = ({
+  lampBulbRef,
+  pageMeshRef,
+  githubSnapshot,
+  projects,
+  newEventIds,
+}: {
+  lampBulbRef: React.RefObject<THREE.Mesh | null>;
+  pageMeshRef: React.RefObject<THREE.Mesh | null>;
+  githubSnapshot: GithubSnapshot | null;
+  projects: Project[];
+  newEventIds: Set<string>;
+}): React.ReactElement => {
+  const state = useResolvedTimeOfDay();
+  return (
+    <Lightmaps state={state}>
+      <RealTimeLights state={state} />
+      <Desk />
+      <Window />
+      <Lamp ref={lampBulbRef} />
+      <LiveActivityBook
+        snapshot={githubSnapshot}
+        state={state}
+        newEventIds={newEventIds}
+        pageFlutterRef={pageMeshRef}
+      />
+      <ProjectBookStack projects={projects} />
+      <DustMotes state={state} />
+      <LampBreathe targetRef={lampBulbRef} state={state} />
+      <PageFlutter targetRef={pageMeshRef} />
+    </Lightmaps>
+  );
+};
+
+const ResolvedEffects = (): React.ReactElement => {
+  const state = useResolvedTimeOfDay();
+  const reducedMotion = usePrefsStore((s) => s.reducedMotion);
+  return <Effects state={state} reducedMotion={reducedMotion} />;
+};
+
 export const Scene = (props: SceneProps): React.ReactElement => {
   const lampBulbRef = useRef<THREE.Mesh>(null);
   const pageMeshRef = useRef<THREE.Mesh>(null);
   const firedRef = useRef(false);
-
-  // profile is consumed by downstream phases; retaining a void-read keeps the
-  // SSR payload present until Phase 5 uses it.
-  void props.profile;
 
   const events = useMemo(
     () => props.githubSnapshot?.events ?? [],
@@ -73,7 +120,15 @@ export const Scene = (props: SceneProps): React.ReactElement => {
   const onPointerMissed = usePointerMissed();
 
   useEffect(() => {
-    timeOfDayStore.getState().ensureInitialized();
+    const cleanup = subscribeToReducedMotion();
+    // Seed the current value in case the initial seed ran before matchMedia existed.
+    prefsStore.setState({ reducedMotion: prefsStore.getState().reducedMotion });
+    return cleanup;
+  }, []);
+
+  useEffect(() => {
+    const resolved = resolve({ url: new URL(window.location.href) });
+    timeOfDayStore.getState().ensureInitialized(resolved);
   }, []);
 
   const onCanvasCreated = () => {
@@ -100,27 +155,33 @@ export const Scene = (props: SceneProps): React.ReactElement => {
         <color attach="background" args={[SURFACE_COLOR]} />
         <Suspense fallback={null}>
           <Camera />
-          <Lightmaps state="evening">
-            <RealTimeLights state="evening" />
-            <Desk />
-            <Window />
-            <Lamp ref={lampBulbRef} />
-            <LiveActivityBook
-              snapshot={props.githubSnapshot}
-              state="evening"
-              newEventIds={newEventIds}
-              pageFlutterRef={pageMeshRef}
-            />
-            <ProjectBookStack projects={props.projects} />
-            <DustMotes state="evening" />
-            <LampBreathe targetRef={lampBulbRef} state="evening" />
-            <PageFlutter targetRef={pageMeshRef} />
-          </Lightmaps>
-          <Effects state="evening" reducedMotion={false} />
+          <ResolvedSceneContent
+            lampBulbRef={lampBulbRef}
+            pageMeshRef={pageMeshRef}
+            githubSnapshot={props.githubSnapshot}
+            projects={props.projects}
+            newEventIds={newEventIds}
+          />
+          <ResolvedEffects />
         </Suspense>
       </Canvas>
+      <ResolvedStateMarker />
+      <IntroOverlay profile={props.profile} />
+      <StartupSequence lampBulbRef={lampBulbRef} />
       <LiveRegion projects={props.projects} />
       <ActivePanelRenderer projects={props.projects} />
     </>
+  );
+};
+
+const ResolvedStateMarker = (): React.ReactElement => {
+  const state = useResolvedTimeOfDay();
+  return (
+    <div
+      aria-hidden="true"
+      data-testid="resolved-state"
+      data-state={state}
+      style={{ position: 'absolute', width: 0, height: 0, opacity: 0 }}
+    />
   );
 };
