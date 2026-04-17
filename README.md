@@ -2,12 +2,6 @@
 
 A spatial, cinematic developer portfolio rendered in real-time WebGL — a reading room where projects sit on a desk as books, live GitHub activity breathes in from the window, and a printed-page fallback waits when JavaScript is off.
 
-## Why it's interesting
-
-Most portfolios reach for résumé-grid or demo-reel and let the content speak. Atelier goes the other way: it treats the portfolio as an environment. An evening-lit interior, a single lamp, a window, two kinds of books. Open a book and a shadcn-styled panel rises over the pages; Escape, click-outside, and focus restoration all close it. Keyboard-only traversal is a first-class path. No-JS visitors are meta-refreshed straight to `/fallback`, where every project, skill, and résumé entry renders as semantic HTML with the same typographic system as the 3D scene.
-
-Every phase is gated by measurable acceptance tests — route bundle stays under 1 MB, p5 frame rate per time-of-day state, Lighthouse score on the night (pessimistic) state, per-state visual-regression screenshots. The performance budget is enforced by the repo, not by hope. The architecture doc in [`docs/architecture.md`](docs/architecture.md) is the source of truth.
-
 ## Live URL
 
 - Production: _coming with V1 launch_
@@ -24,16 +18,6 @@ Every phase is gated by measurable acceptance tests — route bundle stays under
 - **Tailwind CSS v4 + tokens.css** for the UI layer — tokens handle the accent, ink, and surface colours; Tailwind handles layout.
 - **Zod** for content schemas — every `src/content/**` entry is parsed at load time so typos blow up at boot, not in production.
 - **Vitest + Playwright** — unit + component + end-to-end + visual regression + Lighthouse CI, wired into GitHub Actions.
-
-## Architecture
-
-Source-of-truth architecture document: [`docs/architecture.md`](docs/architecture.md). The interesting sections:
-
-- §4 — data model (Profile, Project, Skill, ExperienceEntry, GithubSnapshot).
-- §5 — runtime surfaces (Scene composition, UI layer, interaction layer, time-of-day system).
-- §7 — performance budget and observability.
-- §8 — phase-by-phase acceptance gates.
-- §11.5 — reduced-motion divergence.
 
 ## Local development
 
@@ -64,6 +48,7 @@ Force a specific time-of-day state for QA: `http://localhost:3000/?time=morning`
 | `pnpm e2e` | Playwright end-to-end suite (fixture mode) |
 | `pnpm assets:verify` | Enforce the 15 MB scene-asset budget |
 | `pnpm bundle:verify` | Enforce the 1 MB route-bundle budget (runs after `pnpm build`) |
+| `pnpm lh:night` | Local Lighthouse CI run against `?time=night` |
 
 ## Performance
 
@@ -79,9 +64,4 @@ External contributions aren't accepted — this is a personal production project
 
 ## License
 
-Code is MIT; see [`LICENSE`](LICENSE). Content under `src/content/**`, assets under `public/`, and the architecture doc under `docs/architecture.md` are all-rights-reserved. The MIT boundary covers the runtime, the build pipeline, the shader/material math, and anything else that isn't personal narrative or authored media.
-
-## Project docs
-
-- [`docs/BRIEF.md`](docs/BRIEF.md) — product brief
-- [`docs/architecture.md`](docs/architecture.md) — architecture document (source of truth)
+Code is MIT; see [`LICENSE`](LICENSE). Content under `src/content/**` and assets under `public/` are all-rights-reserved. The MIT boundary covers the runtime, the build pipeline, the shader/material math, and anything else that isn't personal narrative or authored media.

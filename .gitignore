@@ -58,11 +58,8 @@ assets-src/
 # Keep visual regression baselines tracked per ADR-011
 !tests/e2e/visual/baseline/*.png
 
-# docs — internal phase tracking is local-only;
-# whitelist the polished public-facing references below.
+# docs — local-only working notes; not shipped publicly.
 docs/
-!docs/architecture.md
-!docs/BRIEF.md
 
 # Claude Code workspace state (scheduled tasks, worktree metadata, etc.)
 .claude/
