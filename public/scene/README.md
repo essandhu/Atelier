@@ -58,5 +58,16 @@ Until those land, the scene falls back to the procedural primitives
 defined in `Desk.tsx`, `Window.tsx`, and `Lamp.tsx` so `pnpm dev` keeps
 rendering.
 
-The morning / day / night lightmaps (and the rest of the time-of-day
-preset tuning) are Phase 5 work.
+## Phase 5 lightmaps
+
+Phase 5 tunes the per-state presets and adds three more lightmap slots:
+
+- `lightmaps/morning.ktx2` — cool sidelight, bloom focus on the window.
+- `lightmaps/day.ktx2` — neutral-cool high-key, bloom minimal.
+- `lightmaps/night.ktx2` — near-black window, lamp-hero bloom.
+
+The tuning lives in `src/time-of-day/presets.ts`. Authoring the actual KTX2
+files is a developer-local step — see
+[`scripts/bake-lightmaps.md`](../../scripts/bake-lightmaps.md) for the Blender
+workflow. The runtime path tolerates missing files by design, so CI is green
+whether or not the bakes are committed.

@@ -11,6 +11,7 @@ import type { ReactNode } from 'react';
 import { sceneStore, useSceneStore } from '@/store/scene-store';
 import { durations, easings } from '@/ui/motion/tokens';
 import { Button } from '@/ui/primitives/button';
+import { useIsNarrowViewport } from '@/lib/use-narrow-viewport';
 
 export interface PanelFrameProps {
   children: ReactNode;
@@ -28,16 +29,16 @@ const overlayStyle: React.CSSProperties = {
   pointerEvents: 'none',
 };
 
-const contentWrapperStyle: React.CSSProperties = {
+const contentWrapperStyleFor = (narrow: boolean): React.CSSProperties => ({
   position: 'fixed',
   inset: 0,
   zIndex: 51,
   display: 'flex',
-  alignItems: 'center',
+  alignItems: narrow ? 'stretch' : 'center',
   justifyContent: 'center',
-  padding: '2rem',
+  padding: narrow ? 0 : '2rem',
   pointerEvents: 'none',
-};
+});
 
 const stopScrollPropagation = (e: React.WheelEvent) => {
   e.stopPropagation();
@@ -52,6 +53,7 @@ export const PanelFrame = ({
 }: PanelFrameProps): React.ReactElement => {
   const phase = useSceneStore((s) => s.phase);
   const isOpen = phase === 'opening' || phase === 'open';
+  const narrow = useIsNarrowViewport();
 
   // Drive store phase transitions on a timer tied to the entry/exit durations.
   // Decoupling from Framer Motion's onAnimationComplete avoids races with
@@ -85,7 +87,7 @@ export const PanelFrame = ({
     >
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay style={overlayStyle} />
-        <div style={contentWrapperStyle}>
+        <div style={contentWrapperStyleFor(narrow)}>
           <DialogPrimitive.Content
             data-testid="panel-frame"
             aria-labelledby={titleId}
@@ -94,8 +96,8 @@ export const PanelFrame = ({
             style={{
               pointerEvents: 'auto',
               width: '100%',
-              maxWidth: '42rem',
-              maxHeight: '70vh',
+              maxWidth: narrow ? '100%' : '42rem',
+              maxHeight: narrow ? '100dvh' : '70vh',
               overflowY: 'auto',
               padding: 0,
               backgroundColor: 'transparent',
@@ -120,15 +122,18 @@ export const PanelFrame = ({
               style={{
                 pointerEvents: 'auto',
                 width: '100%',
-                padding: '2rem',
-                borderRadius: '0.375rem',
-                border: '1px solid rgba(232, 226, 212, 0.18)',
+                padding: narrow ? '1.25rem' : '2rem',
+                borderRadius: narrow ? 0 : '0.375rem',
+                border: narrow
+                  ? 'none'
+                  : '1px solid rgba(232, 226, 212, 0.18)',
                 backgroundColor: muted
                   ? 'rgba(15, 12, 10, 0.96)'
                   : 'rgba(15, 12, 10, 0.92)',
                 color: 'var(--color-ink)',
-                boxShadow: '0 12px 48px rgba(0,0,0,0.45)',
+                boxShadow: narrow ? 'none' : '0 12px 48px rgba(0,0,0,0.45)',
                 position: 'relative',
+                minHeight: narrow ? '100dvh' : undefined,
               }}
             >
               <div

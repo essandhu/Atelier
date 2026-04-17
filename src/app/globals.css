@@ -22,3 +22,10 @@ body {
 *::after {
   box-sizing: border-box;
 }
+
+.skip-to-fallback:focus,
+.skip-to-fallback:focus-visible {
+  transform: translateY(0) !important;
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}

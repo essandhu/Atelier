@@ -1,12 +1,12 @@
 'use client';
 
-// Tab order: stack books use tabIndex 100..104 (up to 5 books, stackIndex 0..4).
 import { Html } from '@react-three/drei';
 import type { Project } from '@/content/projects/schemas';
 import { ProjectBook } from '@/scene/project-books/ProjectBook';
 import { spineDimensions } from '@/scene/project-books/spine-design';
+import { TAB_ORDER } from '@/interaction/tab-order';
 
-const MAX_BOOKS = 5;
+const MAX_BOOKS = TAB_ORDER.projectBookMax - TAB_ORDER.projectBookStart + 1;
 const BOOK_GAP = 0.004; // 4 mm between spines
 
 // Position the stack on the right half of the desk, behind the live-activity-book.
@@ -49,7 +49,7 @@ export const ProjectBookStack = ({
           project={project}
           stackIndex={i}
           position={[startX + i * pitch, STACK_Y, STACK_Z]}
-          tabIndex={100 + i}
+          tabIndex={TAB_ORDER.projectBookStart + i}
         />
       ))}
     </group>

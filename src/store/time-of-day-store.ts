@@ -1,10 +1,11 @@
 import { createStore } from 'zustand/vanilla';
+import { useStore } from 'zustand';
 import type { TimeOfDayState } from '@/time-of-day/types';
 
 interface TimeOfDayStore {
   resolved: TimeOfDayState | null;
   initialize: (state: TimeOfDayState) => void;
-  ensureInitialized: () => void;
+  ensureInitialized: (state?: TimeOfDayState) => void;
 }
 
 export const timeOfDayStore = createStore<TimeOfDayStore>((set, get) => ({
@@ -18,8 +19,15 @@ export const timeOfDayStore = createStore<TimeOfDayStore>((set, get) => ({
     }
     set({ resolved: state });
   },
-  ensureInitialized: () => {
+  ensureInitialized: (state = 'evening') => {
     if (get().resolved !== null) return;
-    set({ resolved: 'evening' });
+    set({ resolved: state });
   },
 }));
+
+export const useTimeOfDayStore = <T>(
+  selector: (s: TimeOfDayStore) => T,
+): T => useStore(timeOfDayStore, selector);
+
+export const useResolvedTimeOfDay = (): TimeOfDayState =>
+  useTimeOfDayStore((s) => s.resolved ?? 'evening');
