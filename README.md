@@ -6,7 +6,7 @@ A spatial, cinematic developer portfolio rendered in real-time WebGL — a readi
 
 Most portfolios reach for résumé-grid or demo-reel and let the content speak. Atelier goes the other way: it treats the portfolio as an environment. An evening-lit interior, a single lamp, a window, two kinds of books. Open a book and a shadcn-styled panel rises over the pages; Escape, click-outside, and focus restoration all close it. Keyboard-only traversal is a first-class path. No-JS visitors are meta-refreshed straight to `/fallback`, where every project, skill, and résumé entry renders as semantic HTML with the same typographic system as the 3D scene.
 
-Every phase is gated by measurable acceptance tests — route bundle stays under 1 MB, p5 frame rate per time-of-day state, Lighthouse score on the night (pessimistic) state, per-state visual-regression screenshots. The performance budget is enforced by the repo, not by hope. The architecture doc in [`docs/architecture.md`](docs/architecture.md) is the source of truth; the phase task files under `docs/phase-N-tasks.md` are the operational contracts.
+Every phase is gated by measurable acceptance tests — route bundle stays under 1 MB, p5 frame rate per time-of-day state, Lighthouse score on the night (pessimistic) state, per-state visual-regression screenshots. The performance budget is enforced by the repo, not by hope. The architecture doc in [`docs/architecture.md`](docs/architecture.md) is the source of truth.
 
 ## Live URL
 
@@ -67,8 +67,6 @@ Force a specific time-of-day state for QA: `http://localhost:3000/?time=morning`
 
 ## Performance
 
-See [`docs/perf-gates.md`](docs/perf-gates.md) for the full story. Summary:
-
 - **Bundle guard** — `pnpm bundle:verify` fails on any route exceeding 1 MB gzipped first-load JS.
 - **Asset guard** — `pnpm assets:verify` caps `public/scene/**` + a 2 MB lightmap reserve at 15 MB.
 - **Lighthouse CI** — PR-blocking run against the Vercel preview URL on `?time=night`; fails below 0.80 performance, or LCP > 2.5 s, or CLS > 0.1.
@@ -87,7 +85,3 @@ Code is MIT; see [`LICENSE`](LICENSE). Content under `src/content/**`, assets un
 
 - [`docs/BRIEF.md`](docs/BRIEF.md) — product brief
 - [`docs/architecture.md`](docs/architecture.md) — architecture document (source of truth)
-- [`docs/deliverables-checklist.md`](docs/deliverables-checklist.md) — project-wide deliverables
-- [`docs/keyboard-nav.md`](docs/keyboard-nav.md) — fixed Tab order reference
-- [`docs/perf-gates.md`](docs/perf-gates.md) — performance budgets + how to reproduce locally
-- [`docs/phase-5-tasks.md`](docs/phase-5-tasks.md) — most recent phase task list
