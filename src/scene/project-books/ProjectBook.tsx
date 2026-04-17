@@ -6,6 +6,7 @@ import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import type { Project } from '@/content/projects/schemas';
 import { sceneStore, useSceneStore } from '@/store/scene-store';
+import { usePrefsStore } from '@/store/prefs-store';
 import { createPointerHandlers } from '@/interaction/pointer';
 import {
   spineDimensions,
@@ -19,11 +20,6 @@ const PULL_Z = 0.03;
 const HOVER_GLOW = 0.1;
 const COVER_FLIP = Math.PI;
 const FACE_ROTATE = -Math.PI / 2;
-
-const prefersReducedMotion = (): boolean => {
-  if (typeof window === 'undefined') return false;
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-};
 
 export interface ProjectBookProps {
   project: Project;
@@ -61,6 +57,10 @@ export const ProjectBook = ({
     s.activePanel?.kind === 'project' ? s.activePanel.id : null,
   );
   const hoveredId = useSceneStore((s) => s.hoveredObject);
+  // Sourcing reducedMotion from prefs-store keeps the value reactive to OS
+  // toggles (subscribeToReducedMotion bridges matchMedia → store) and matches
+  // the single-source-of-truth pattern from Phase 5 Deviation 2.
+  const reducedMotion = usePrefsStore((s) => s.reducedMotion);
   const isHovered = hoveredId === project.id;
   const isActive = activeId === project.id;
 
@@ -96,8 +96,7 @@ export const ProjectBook = ({
     a.hover += (hoverTarget - a.hover) * 0.1;
 
     // Open animation progress with prefers-reduced-motion shortcut.
-    const ms =
-      prefersReducedMotion() ? durations.fast : durations.bookOpen;
+    const ms = reducedMotion ? durations.fast : durations.bookOpen;
     const step = (delta * 1000) / ms;
 
     if (a.direction === 'forward') {
@@ -121,7 +120,7 @@ export const ProjectBook = ({
         position[1] + HOVER_LIFT * a.hover,
         position[2] + PULL_Z * a.open,
       );
-      const rotate = prefersReducedMotion() ? 0 : FACE_ROTATE * a.open;
+      const rotate = reducedMotion ? 0 : FACE_ROTATE * a.open;
       outer.rotation.y = rotate;
     }
 

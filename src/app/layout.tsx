@@ -36,10 +36,15 @@ const RootLayout = ({ children }: RootLayoutProps): React.ReactElement => (
         href="/fonts/jetbrains-mono-variable.woff2"
         crossOrigin="anonymous"
       />
+      {/* Meta-refresh lives in <head> so the redirect fires before <body>
+          paints. The visible-fallback <noscript> below covers screen readers
+          and the rare browser that ignores http-equiv refreshes. */}
+      <noscript>
+        <meta httpEquiv="refresh" content="0; url=/fallback" />
+      </noscript>
     </head>
     <body>
       <noscript>
-        <meta httpEquiv="refresh" content="0; url=/fallback" />
         You need JavaScript to view the interactive scene. Visit{' '}
         <a href="/fallback">the text version</a>.
       </noscript>
