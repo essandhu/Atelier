@@ -6,7 +6,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 const PUBLIC_ID = 'atelier';
-const NDA_ID = 'sealed-fintech';
+const NDA_ID = 'nda-engagement';
 const MAX_TABS = 15;
 
 const tabUntil = async (page: Page, testId: string): Promise<void> => {

@@ -1,6 +1,8 @@
 import type { ExperienceEntry } from '@/content/experience/schemas';
 import { atelierExperience } from './atelier';
+import { paycomExperience } from './paycom';
 
-const experience: ExperienceEntry[] = [atelierExperience];
+// Ordered most-recent-start-date first.
+const experience: ExperienceEntry[] = [atelierExperience, paycomExperience];
 
 export default experience;

@@ -11,20 +11,20 @@ export interface Profile {
   };
 }
 
-// Placeholder profile. Phase 5 owns the real content swap.
-// `githubUsername` must be a real GitHub account — the Phase 1 acceptance
-// test pulls the live 90-day contribution total for this user.
 export const profile: Profile = {
-  name: 'Atelier Placeholder',
-  role: 'Creative Software Engineer',
+  name: 'Erick Sandhu',
+  role: 'Software Developer',
   positioning:
-    'Crafting spatial, cinematic software that reads like a printed page.',
-  city: 'Earth',
-  githubUsername: process.env.GITHUB_USERNAME ?? 'octocat',
+    'Building component libraries, design systems, and full-stack apps that ship. Currently pursuing an M.S. in Computer Science at UT Austin while contributing to open-source developer tooling.',
+  city: 'Irving, TX',
+  // Phase 1 acceptance test pulls live 90-day contributions for this account.
+  githubUsername: process.env.GITHUB_USERNAME ?? 'essandhu',
   contacts: {
-    email: 'hello@example.com',
+    email: 'essandhu22@gmail.com',
     links: [
-      { label: 'GitHub', href: 'https://github.com/octocat' },
+      { label: 'GitHub', href: 'https://github.com/essandhu' },
+      { label: 'LinkedIn', href: 'https://linkedin.com/in/erick-sandhu' },
+      { label: 'Website', href: 'https://ericksandhu.dev' },
     ],
   },
 };

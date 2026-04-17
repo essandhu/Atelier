@@ -1,6 +1,3 @@
-import { placeholderSkill } from '@/content/skills/placeholder';
-import type { Skill } from '@/content/skills/schemas';
-
-const skills: Skill[] = [placeholderSkill];
+import { skills } from '@/content/skills/skills';
 
 export default skills;

@@ -98,11 +98,14 @@ test('After dismissing intro, Tab walks skip → project books in TAB_ORDER sequ
 
   // With the intro dismissed, intro-begin and webcam-toggle are unmounted, so
   // the next positive-tabIndex stop is the first project book (tabIndex=100).
-  // V1 ships three project books; walk them in numerical tabIndex order.
+  // V1 ships five project books; walk them in numerical tabIndex order.
+  // Order mirrors src/content/projects/index.ts.
   const expectedBookIds = [
     'atelier',
-    'sealed-fintech',
-    'atelier-placeholder',
+    'synapse-oms',
+    'sentinel',
+    'aurora-ui',
+    'nda-engagement',
   ] as const;
   for (const id of expectedBookIds) {
     await page.keyboard.press('Tab');

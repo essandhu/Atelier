@@ -1,20 +1,20 @@
 import type { Project } from '@/content/projects/schemas';
 
-// NDA-sanitized placeholder. The SealedProjectPanel never renders problem,
+// NDA-sanitized entry. The SealedProjectPanel never renders problem,
 // approach, outcome, summary, or screenshots; the Zod schema still requires
 // non-empty strings for those fields, so they are filled with honest
 // boilerplate that stays behind the seal.
-export const sealedFintechProject: Project = {
-  id: 'sealed-fintech',
-  title: 'Ledger (sealed)',
+export const ndaEngagementProject: Project = {
+  id: 'nda-engagement',
+  title: 'Sealed engagement',
   summary:
     'Private engagement. Summary cannot be disclosed — the SealedProjectPanel renders the sealed treatment instead.',
-  role: 'Lead frontend engineer on a three-person team.',
+  role: 'Frontend engineer.',
   problem:
     'Details covered under NDA. Non-disclosable per the engagement terms.',
   approach:
     'Details covered under NDA. Non-disclosable per the engagement terms.',
-  stack: ['TypeScript', 'React', 'Node.js', 'PostgreSQL', 'AWS'],
+  stack: ['TypeScript', 'React', 'Node.js'],
   outcome:
     'Details covered under NDA. Non-disclosable per the engagement terms.',
   screenshots: [],
