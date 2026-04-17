@@ -5,26 +5,26 @@
 > Legend: `[ ]` pending · `[x]` complete · `[~]` deferred/superseded (with note).
 
 ## Root Configuration
-- [ ] `README.md` — product-first README per Section 10.1
-- [ ] `LICENSE` — MIT for code, all-rights-reserved note for content
-- [ ] `package.json` — with `packageManager: pnpm@9.x` pin
-- [ ] `pnpm-lock.yaml`
-- [ ] `tsconfig.json`
-- [ ] `next.config.mjs`
-- [ ] `tailwind.config.ts`
-- [ ] `postcss.config.mjs`
-- [ ] `vitest.config.ts`
-- [ ] `playwright.config.ts`
-- [ ] `components.json` — shadcn/ui config
-- [ ] `eslint.config.mjs`
-- [ ] `.prettierrc`
-- [ ] `.env.example`
-- [ ] `.gitignore`
-- [ ] `.nvmrc` — pinned to 20.x
-- [ ] `instrumentation.ts` — Next.js Sentry init hook
-- [ ] `sentry.client.config.ts`
-- [ ] `sentry.server.config.ts`
-- [ ] `sentry.edge.config.ts`
+- [x] `README.md` — product-first README per Section 10.1 (skeleton in P1; full version Phase 5)
+- [x] `LICENSE` — MIT for code, all-rights-reserved note for content
+- [x] `package.json` — with `packageManager: pnpm@9.x` pin
+- [x] `pnpm-lock.yaml`
+- [x] `tsconfig.json`
+- [x] `next.config.mjs`
+- [x] `tailwind.config.ts`
+- [x] `postcss.config.mjs`
+- [x] `vitest.config.ts`
+- [x] `playwright.config.ts`
+- [x] `components.json` — shadcn/ui config
+- [x] `eslint.config.mjs`
+- [x] `.prettierrc`
+- [x] `.env.example`
+- [x] `.gitignore`
+- [x] `.nvmrc` — pinned to 20.x
+- [x] `instrumentation.ts` — Next.js Sentry init hook
+- [x] `sentry.client.config.ts`
+- [x] `sentry.server.config.ts`
+- [x] `sentry.edge.config.ts`
 
 ## Documentation
 - [x] `docs/BRIEF.md`
@@ -33,7 +33,7 @@
 - [x] `docs/deliverables-checklist.md` — this file
 
 ## Public Assets
-- [ ] `public/favicon.svg`
+- [x] `public/favicon.svg`
 - [ ] `public/fonts/inter-variable.woff2`
 - [ ] `public/fonts/jetbrains-mono-variable.woff2`
 - [ ] `public/scene/models/desk.glb` — Draco-compressed geometry
@@ -47,13 +47,13 @@
 - [ ] `public/scene/lightmaps/night.ktx2`
 
 ## App Routes
-- [ ] `src/app/layout.tsx`
-- [ ] `src/app/page.tsx` — the scene page
-- [ ] `src/app/globals.css`
+- [x] `src/app/layout.tsx`
+- [x] `src/app/page.tsx` — the scene page — PARTIAL: P1 ships a server-fetched debug page; Phase 2 replaces with the R3F scene
+- [x] `src/app/globals.css`
 - [ ] `src/app/opengraph-image.tsx` — pre-rendered evening hero
-- [ ] `src/app/fallback/page.tsx` — no-JS semantic portfolio
-- [ ] `src/app/api/health/route.ts` — GitHub connectivity smoke test
-- [ ] `src/app/api/revalidate/route.ts` — authenticated ISR webhook
+- [x] `src/app/fallback/page.tsx` — no-JS semantic portfolio — PARTIAL: minimal semantic version; Phase 5 owns the styled fallback
+- [x] `src/app/api/health/route.ts` — GitHub connectivity smoke test
+- [x] `src/app/api/revalidate/route.ts` — authenticated ISR webhook
 
 ## Scene Subsystem
 - [ ] `src/scene/Scene.tsx` — root R3F Canvas + composition
@@ -77,24 +77,24 @@
 - [ ] `src/scene/lighting/bake-presets.ts` — per-state intensity/color tables
 
 ## Content Layer
-- [ ] `src/content/profile.ts` — name, role, city, github username (seeded placeholder in P1, real content later)
-- [ ] `src/content/projects/index.ts` — ordered array
-- [ ] `src/content/projects/schemas.ts` — Zod `Project` schema
-- [ ] `src/content/projects/<slug>.ts` — one module per project (≥1 placeholder in P1, ≥1 real in P4)
-- [ ] `src/content/skills/index.ts`
-- [ ] `src/content/skills/schemas.ts` — Zod `Skill` schema
-- [ ] `src/content/skills/<slug>.ts` — per-skill modules (≥1 placeholder in P1)
-- [ ] `src/content/experience/index.ts`
-- [ ] `src/content/experience/schemas.ts` — Zod `ExperienceEntry` schema
+- [x] `src/content/profile.ts` — name, role, city, github username (seeded placeholder in P1, real content later)
+- [x] `src/content/projects/index.ts` — ordered array
+- [x] `src/content/projects/schemas.ts` — Zod `Project` schema
+- [x] `src/content/projects/<slug>.ts` — one module per project (≥1 placeholder in P1, ≥1 real in P4) — PARTIAL: `placeholder.ts` only
+- [x] `src/content/skills/index.ts`
+- [x] `src/content/skills/schemas.ts` — Zod `Skill` schema
+- [x] `src/content/skills/<slug>.ts` — per-skill modules (≥1 placeholder in P1) — PARTIAL: `placeholder.ts` only
+- [x] `src/content/experience/index.ts`
+- [x] `src/content/experience/schemas.ts` — Zod `ExperienceEntry` schema
 - [ ] `src/content/experience/<slug>.ts` — per-role modules
 
 ## GitHub Data Layer
-- [ ] `src/data/github/client.ts` — server-only GraphQL fetcher (`import 'server-only'`)
-- [ ] `src/data/github/queries.ts` — `UserContributions` + `UserActivity` documents
-- [ ] `src/data/github/types.ts` — GraphQL response types
-- [ ] `src/data/github/transform.ts` — includes `quantize()` (Section 5.3)
-- [ ] `src/data/github/cache.ts` — ISR revalidate tags + ttl factory
-- [ ] `src/data/loaders/projects.ts` — typed loader over `content/` (projects/skills/experience/profile)
+- [x] `src/data/github/client.ts` — server-only GraphQL fetcher (`import 'server-only'`)
+- [x] `src/data/github/queries.ts` — `UserContributions` + `UserActivity` documents
+- [x] `src/data/github/types.ts` — GraphQL response types
+- [x] `src/data/github/transform.ts` — includes `quantize()` (Section 5.3)
+- [x] `src/data/github/cache.ts` — ISR revalidate tags + ttl factory
+- [x] `src/data/loaders/projects.ts` — typed loader over `content/` (projects/skills/experience/profile)
 
 ## Time-of-Day System
 - [ ] `src/time-of-day/resolve.ts` — hour/URL → TimeOfDayState
@@ -130,27 +130,30 @@
 - [ ] `src/store/time-of-day-store.ts` — Zustand: resolved state (write-once)
 
 ## Telemetry
-- [ ] `src/telemetry/events.ts` — typed custom event names + `track()`
-- [ ] `src/telemetry/web-vitals.ts` — Next.js web-vitals reporter
+- [x] `src/telemetry/events.ts` — typed custom event names + `track()`
+- [x] `src/telemetry/web-vitals.ts` — Next.js web-vitals reporter
 
 ## Styles
 - [ ] `src/styles/tokens.css` — accent color + type tokens
 
 ## Lib
-- [ ] `src/lib/env.ts` — zod-validated env access
-- [ ] `src/lib/logger.ts` — pino-based server logger
+- [x] `src/lib/env.ts` — zod-validated env access
+- [x] `src/lib/logger.ts` — pino-based server logger
+- [x] `src/lib/utils.ts` — shadcn `cn()` helper
 
 ## Scripts
-- [ ] `scripts/asset-pipeline/compress-geometry.mjs` — Draco via `@gltf-transform`
-- [ ] `scripts/asset-pipeline/compress-textures.mjs` — KTX2/Basis via `@gltf-transform`
-- [ ] `scripts/asset-pipeline/verify-budgets.mjs` — fails CI if scene assets > 15MB
+- [x] `scripts/asset-pipeline/compress-geometry.mjs` — Draco via `@gltf-transform`
+- [x] `scripts/asset-pipeline/compress-textures.mjs` — KTX2/Basis via `@gltf-transform` — PARTIAL: classifier-only stub; Phase 2 wires the real transcoder (see Phase 1 Deviation 7)
+- [x] `scripts/asset-pipeline/verify-budgets.mjs` — fails CI if scene assets > 15MB
+- [x] `scripts/asset-pipeline/verify-bundle-size.mjs` — fails CI if any route > 1MB gzipped (see Phase 1 Deviation 5)
 - [ ] `scripts/bake-lightmaps.md` — Blender workflow reference
 
 ## Tests — Unit (Vitest)
 - [ ] `tests/unit/time-of-day.test.ts` — resolve()/override cases
-- [ ] `tests/unit/github-transform.test.ts` — quantize() + GraphQL fixture contract
-- [ ] `tests/unit/content-schemas.test.ts` — every content module parses
-- [ ] `tests/unit/env.test.ts` — env zod validation
+- [x] `tests/unit/github-transform.test.ts` — quantize() + GraphQL fixture contract
+- [x] `tests/unit/content-schemas.test.ts` — every content module parses
+- [x] `tests/unit/env.test.ts` — env zod validation
+- [x] `tests/unit/fixtures/github-contributions.json` — fixture for the contract test
 
 ## Tests — Component (Vitest + RTL)
 - [ ] `tests/component/ProjectPanel.test.tsx`
@@ -159,7 +162,7 @@
 
 ## Tests — E2E (Playwright)
 - [ ] `tests/e2e/fixtures/github-mock.ts` — mocked GraphQL fixture
-- [ ] `tests/e2e/scene-load.spec.ts`
+- [x] `tests/e2e/scene-load.spec.ts` — PARTIAL: Phase 1 smoke test (asserts contribution-total span). Phase 2 evolves it to verify scene mount.
 - [ ] `tests/e2e/project-book-open.spec.ts` — open→scroll→close + focus restoration
 - [ ] `tests/e2e/time-of-day-override.spec.ts` — four `?time=` states
 - [ ] `tests/e2e/keyboard-nav.spec.ts` — tab order stability
@@ -169,13 +172,16 @@
 - [ ] `tests/e2e/visual/baseline/` — committed baseline PNGs per state
 
 ## Performance Gates (live in CI)
-- [ ] Bundle-size guard — parses `next build` report, fails >1MB gzipped
+- [x] Bundle-size guard — parses `next build` report, fails >1MB gzipped (landed in P1 — see Deviation 5)
 - [ ] Lighthouse CI on preview deploys — night-state perf ≥ 80 desktop, LCP < 2.5s, CLS < 0.1
 - [ ] Playwright perf harness — p5 frame rate ≥ 55fps per state during 10s idle
 
 ## CI/CD
-- [ ] `.github/workflows/ci.yml` — typecheck, lint, unit, e2e, asset budget, Lighthouse, bundle-size
+- [x] `.github/workflows/ci.yml` — typecheck, lint, unit, e2e, asset budget, bundle-size (Lighthouse + visual-regression land Phase 5)
 - [ ] `.github/workflows/visual-regression.yml` — screenshot diff on preview deploys
+
+## Security & Headers (added by Phase 1 — see Deviation 6)
+- [x] CSP + Permissions-Policy + Referrer-Policy + nosniff/X-Frame-Options in `next.config.mjs`
 
 ## Post-V1 (explicitly deferred — tracked so they don't get lost)
 - [~] Globe with current-location marker — DEFERRED: Post-V1 roadmap (Section 8)

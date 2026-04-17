@@ -32,7 +32,7 @@
 
 ## Tasks
 
-### P1-01: Project scaffold — Next.js 15, pnpm, Node pin, .gitignore, README, LICENSE
+### P1-01: Project scaffold — Next.js 15, pnpm, Node pin, .gitignore, README, LICENSE — ✅ COMPLETE
 
 **Service:** Root configuration.
 
@@ -62,7 +62,7 @@
 
 ---
 
-### P1-02: TypeScript config with path aliases
+### P1-02: TypeScript config with path aliases — ✅ COMPLETE
 
 **Service:** Root configuration.
 
@@ -81,7 +81,7 @@
 
 ---
 
-### P1-03: Tailwind v4 + shadcn/ui init + globals.css
+### P1-03: Tailwind v4 + shadcn/ui init + globals.css — ⚠️ MODIFIED
 
 **Service:** Styling/UI foundation.
 
@@ -105,7 +105,7 @@
 
 ---
 
-### P1-04: ESLint + Prettier
+### P1-04: ESLint + Prettier — ✅ COMPLETE
 
 **Service:** Root configuration.
 
@@ -125,7 +125,7 @@
 
 ---
 
-### P1-05: `src/lib/env.ts` — Zod-validated env access
+### P1-05: `src/lib/env.ts` — Zod-validated env access — ✅ COMPLETE
 
 **Service:** lib.
 
@@ -151,7 +151,7 @@
 
 ---
 
-### P1-06: `src/lib/logger.ts` — pino with structured bindings
+### P1-06: `src/lib/logger.ts` — pino with structured bindings — ✅ COMPLETE
 
 **Service:** lib.
 
@@ -174,7 +174,7 @@ This is also the Phase 1 establishment of **structured JSON logging with correla
 
 ---
 
-### P1-07: Sentry install — instrumentation + client/server/edge configs
+### P1-07: Sentry install — instrumentation + client/server/edge configs — ✅ COMPLETE
 
 **Service:** Telemetry.
 
@@ -197,7 +197,7 @@ This is also the Phase 1 establishment of **structured JSON logging with correla
 
 ---
 
-### P1-08: Vercel Analytics + `src/telemetry/{events,web-vitals}.ts`
+### P1-08: Vercel Analytics + `src/telemetry/{events,web-vitals}.ts` — ⚠️ MODIFIED
 
 **Service:** Telemetry.
 
@@ -216,7 +216,7 @@ This is also the Phase 1 establishment of **structured JSON logging with correla
 
 ---
 
-### P1-09: Content Zod schemas — projects, skills, experience
+### P1-09: Content Zod schemas — projects, skills, experience — ✅ COMPLETE
 
 **Service:** Content layer.
 
@@ -236,7 +236,7 @@ This is also the Phase 1 establishment of **structured JSON logging with correla
 
 ---
 
-### P1-10: Seed content + loaders
+### P1-10: Seed content + loaders — ✅ COMPLETE
 
 **Service:** Content layer.
 
@@ -263,7 +263,7 @@ This is also the Phase 1 establishment of **structured JSON logging with correla
 
 ---
 
-### P1-11: GitHub data layer — types, queries, cache factory
+### P1-11: GitHub data layer — types, queries, cache factory — ✅ COMPLETE
 
 **Service:** GitHub data layer.
 
@@ -286,7 +286,7 @@ This is also the Phase 1 establishment of **structured JSON logging with correla
 
 ---
 
-### P1-12: GitHub data layer — client + transform (with `quantize`)
+### P1-12: GitHub data layer — client + transform (with `quantize`) — ✅ COMPLETE
 
 **Service:** GitHub data layer.
 
@@ -314,7 +314,7 @@ This is also the Phase 1 establishment of **structured JSON logging with correla
 
 ---
 
-### P1-13: `src/app/api/health/route.ts`
+### P1-13: `src/app/api/health/route.ts` — ✅ COMPLETE
 
 **Service:** API routes.
 
@@ -337,7 +337,7 @@ This is also the Phase 1 establishment of **structured JSON logging with correla
 
 ---
 
-### P1-14: `src/app/api/revalidate/route.ts`
+### P1-14: `src/app/api/revalidate/route.ts` — ✅ COMPLETE
 
 **Service:** API routes.
 
@@ -357,7 +357,7 @@ This is also the Phase 1 establishment of **structured JSON logging with correla
 
 ---
 
-### P1-15: `src/app/layout.tsx` + `not-found.tsx` + Analytics mount
+### P1-15: `src/app/layout.tsx` + `not-found.tsx` + Analytics mount — ✅ COMPLETE
 
 **Service:** App shell.
 
@@ -380,7 +380,7 @@ This is also the Phase 1 establishment of **structured JSON logging with correla
 
 ---
 
-### P1-16: `src/app/page.tsx` — server-fetched debug page
+### P1-16: `src/app/page.tsx` — server-fetched debug page — ✅ COMPLETE
 
 **Service:** App shell.
 
@@ -403,7 +403,7 @@ This is also the Phase 1 establishment of **structured JSON logging with correla
 
 ---
 
-### P1-17: `src/app/fallback/page.tsx` — minimal semantic page
+### P1-17: `src/app/fallback/page.tsx` — minimal semantic page — ✅ COMPLETE
 
 **Service:** App shell.
 
@@ -422,7 +422,7 @@ This is also the Phase 1 establishment of **structured JSON logging with correla
 
 ---
 
-### P1-18: Vitest + RTL config + unit tests
+### P1-18: Vitest + RTL config + unit tests — ✅ COMPLETE
 
 **Service:** Testing harness.
 
@@ -446,7 +446,7 @@ This is also the Phase 1 establishment of **structured JSON logging with correla
 
 ---
 
-### P1-19: Playwright config + smoke e2e
+### P1-19: Playwright config + smoke e2e — ⚠️ MODIFIED
 
 **Service:** Testing harness.
 
@@ -468,7 +468,7 @@ This is also the Phase 1 establishment of **structured JSON logging with correla
 
 ---
 
-### P1-20: Asset pipeline scripts + `pnpm assets:verify`
+### P1-20: Asset pipeline scripts + `pnpm assets:verify` — ⚠️ MODIFIED
 
 **Service:** Asset pipeline.
 
@@ -490,7 +490,7 @@ This is also the Phase 1 establishment of **structured JSON logging with correla
 
 ---
 
-### P1-21: `.github/workflows/ci.yml`
+### P1-21: `.github/workflows/ci.yml` — ✅ COMPLETE
 
 **Service:** CI/CD.
 
@@ -517,7 +517,7 @@ This is also the Phase 1 establishment of **structured JSON logging with correla
 
 ---
 
-### P1-22: Content Security Policy + security headers in `next.config.mjs`
+### P1-22: Content Security Policy + security headers in `next.config.mjs` — ✅ COMPLETE
 
 **Service:** Root configuration.
 
@@ -609,3 +609,67 @@ Mapping each Phase 1 deliverable from Section 8 and each unchecked item in `docs
   - `page.tsx` adds a `data-testid="contribution-total"` span alongside the `<pre>` so the acceptance test has a stable assertion target.
 
 **Next step after this plan is approved:** Execute with the `phase-execution` skill.
+
+---
+
+## Phase 1 Deviations
+
+### Deviation 1: pnpm pinned to 9.15.0 (not just `pnpm@9.x`)
+**Architecture Doc Says:** ADR-013 mandates pnpm 9.x with `packageManager` pinned.
+**Actual Implementation:** `packageManager: "pnpm@9.15.0"` — concrete version chosen for reproducibility. Local dev environment had pnpm 10 installed; Corepack will fetch 9.15 on first `pnpm` invocation.
+**Reason:** A `pnpm@9` shorthand is not a valid `packageManager` value; Corepack requires a concrete version.
+**Impact:** None on downstream phases. Bumping the pin is a 1-line change.
+
+### Deviation 2: Tailwind v4 stable (4.2.x) installed, not the documented 4.0 beta
+**Architecture Doc Says:** Tailwind v4 (was beta at the time of writing).
+**Actual Implementation:** `tailwindcss: ^4.0.0-beta.8` resolved to the now-stable `tailwindcss@4.2.2`.
+**Reason:** Tailwind v4 reached stable. The semver range still resolves correctly.
+**Impact:** Phase 2 should pin to `^4.2.0` once `src/styles/tokens.css` lands so the CSS-first config syntax is locked.
+
+### Deviation 3: GitHub client has no retry/backoff
+**Architecture Doc Says:** Section 5.3 implies durable fetching with logging on failure.
+**Actual Implementation:** `fetchGithubSnapshot` makes a single attempt; on failure throws `GithubFetchError` and the page renders the in-character error path. No exponential backoff.
+**Reason:** Architecture-review explicitly flagged retry/backoff as future work. ISR absorbs intermittent jitter.
+**Impact:** Phase 3 owns adding `cockatiel`-driven retry around the GraphQL POST. Tracked in this deviation list.
+
+### Deviation 4: `page.tsx` adds a `data-testid="contribution-total"` span
+**Architecture Doc Says:** Section 8 Phase 1 deliverable 16: "renders a single `<pre>` showing the raw GithubSnapshot ... plus rendered Profile."
+**Actual Implementation:** Page also renders a stable `<span data-testid="contribution-total">{total}</span>` so the Playwright spec and `curl` acceptance check have a stable selector.
+**Reason:** The phase acceptance test requires a grep-able, server-rendered total.
+**Impact:** Phase 2 will replace this debug page with the scene; the `data-testid` migrates onto the live activity book.
+
+### Deviation 5: Bundle-size guard moved from Phase 5 → Phase 1 CI
+**Architecture Doc Says:** Section 8 lists bundle-size guard alongside Phase 5 CI work.
+**Actual Implementation:** `scripts/asset-pipeline/verify-bundle-size.mjs` and a `bundle-size` CI job ship in P1.
+**Reason:** Section 7.5 + the architecture-review flagged early bundle gating as preferable to catching drift only at Phase 5.
+**Impact:** Phase 5's CI work is correspondingly smaller. Deliverables checklist updated.
+
+### Deviation 6: CSP + security headers added beyond Section 8 deliverables
+**Architecture Doc Says:** Section 8 Phase 1 deliverables omit CSP.
+**Actual Implementation:** P1-22 wires CSP, `Permissions-Policy`, `Referrer-Policy`, `X-Content-Type-Options`, `X-Frame-Options` into `next.config.mjs`.
+**Reason:** Architecture-review explicitly flagged CSP as a Phase 1 addition.
+**Impact:** Phase 5 will tighten `script-src 'unsafe-inline'` once the inline-script surface stabilizes (likely with hashes/nonces).
+
+### Deviation 7: `compress-textures.mjs` is a stub
+**Architecture Doc Says:** Section 5.9 specifies UASTC for normals and ETC1S for albedo via `@gltf-transform`.
+**Actual Implementation:** The script classifies textures by name and logs the chosen mode but does not actually invoke a KTX2 transcoder. `@gltf-transform/functions` lacks a `ktx2` transform out of the box; a `basisu` CLI (or `@toji/basis_universal`) wrapper is required.
+**Reason:** Phase 1 has zero textures to compress; building the real pipeline now would be untestable. The classification logic is in place so Phase 2's first texture lands a runnable wrapper.
+**Impact:** Phase 2's first task adding a texture must replace the stub with a real transcoder call.
+
+### Deviation 8: `TimeOfDayState` type inlined into `src/telemetry/events.ts`
+**Architecture Doc Says:** Section 5.10's `Event` union references `TimeOfDayState`, which lives in `src/time-of-day/types.ts`.
+**Actual Implementation:** The type is inlined in `events.ts` because Phase 1 Out-of-Scope explicitly forbids any `time-of-day/*` files.
+**Reason:** Avoid creating Phase 2 files prematurely.
+**Impact:** Phase 2's `time-of-day/types.ts` task must replace the inline alias with an `import type { TimeOfDayState }` and delete the comment.
+
+### Deviation 9: Phase 1 worktree replaced with phase-1 branch
+**Architecture Doc Says:** N/A — workflow concern.
+**Actual Implementation:** Repo was greenfield (no `.git`). Initialized git directly on a `phase-1` branch instead of a worktree.
+**Reason:** Worktree isolation requires a pre-existing repo with other in-flight work to isolate from; neither was true.
+**Impact:** None. Future phases can use `.worktrees/phase-N` from `main` once `phase-1` is merged.
+
+### Deviation 10: Profile `githubUsername` reads `process.env.GITHUB_USERNAME`
+**Architecture Doc Says:** Section 4.2 defines `Profile.githubUsername` as a static string.
+**Actual Implementation:** `src/content/profile.ts` reads `process.env.GITHUB_USERNAME ?? 'octocat'` so the placeholder profile aligns with whatever PAT/username is configured locally.
+**Reason:** The acceptance test requires the live contribution total to match the visitor's real GitHub account. Hard-coding a username would make the acceptance test fail unless the developer also edited `profile.ts`.
+**Impact:** Phase 5 (real content swap) replaces this with a static literal of the real owner's username.
