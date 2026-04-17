@@ -1,0 +1,10 @@
+:root {
+  --accent: #c77a3b;
+  --accent-fg: #0a0806;
+
+  --color-ink: #e8e2d4;
+  --color-surface: #0f0c0a;
+
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'Menlo', monospace;
+}

@@ -1,10 +1,18 @@
 import { withSentryConfig } from '@sentry/nextjs';
 
+const isDev = process.env.NODE_ENV !== 'production';
+
+// Next.js HMR + R3F shader compilation rely on eval in dev; production builds
+// do not. Phase 5 tightens `'unsafe-inline'` (dev tooling still needs it).
+const scriptSrc = isDev
+  ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://va.vercel-scripts.com"
+  : "script-src 'self' 'unsafe-inline' https://vercel.live https://va.vercel-scripts.com";
+
 const cspDirectives = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' https://vercel.live",
+  scriptSrc,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: https://*.githubusercontent.com",
+  "img-src 'self' data: blob: https://*.githubusercontent.com",
   "font-src 'self' data:",
   "connect-src 'self' https://api.github.com https://*.vercel-insights.com https://*.sentry.io",
   "frame-ancestors 'none'",

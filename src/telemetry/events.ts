@@ -1,8 +1,4 @@
-// The `TimeOfDayState` type lives in `src/time-of-day/types.ts` starting in
-// Phase 2. Inlined here so Phase 1 doesn't need to ship any `time-of-day/*`
-// files (see Phase 1 Out-of-Scope); the union is kept in sync at Phase 2
-// import time.
-type TimeOfDayState = 'morning' | 'day' | 'evening' | 'night';
+import type { TimeOfDayState } from '@/time-of-day/types';
 
 export type Event =
   | { name: 'scene.loaded'; at: number; state: TimeOfDayState }

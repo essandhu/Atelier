@@ -52,6 +52,9 @@ playwright/.cache/
 # generated asset artifacts (keep source glbs/ktx2 out of git, build artifacts excluded)
 public/scene/**/*.draco.glb
 
+# texture-compression staging area (developer-local source files)
+assets-src/
+
 # Keep visual regression baselines tracked per ADR-011
 !tests/e2e/visual/baseline/*.png
 
