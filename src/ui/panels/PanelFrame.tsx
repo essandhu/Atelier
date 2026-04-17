@@ -9,6 +9,7 @@ import {
 import { XIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { sceneStore, useSceneStore } from '@/store/scene-store';
+import { usePrefsStore } from '@/store/prefs-store';
 import { durations, easings } from '@/ui/motion/tokens';
 import { Button } from '@/ui/primitives/button';
 import { useIsNarrowViewport } from '@/lib/use-narrow-viewport';
@@ -54,6 +55,7 @@ export const PanelFrame = ({
   const phase = useSceneStore((s) => s.phase);
   const isOpen = phase === 'opening' || phase === 'open';
   const narrow = useIsNarrowViewport();
+  const reducedMotion = usePrefsStore((s) => s.reducedMotion);
 
   // Drive store phase transitions on a timer tied to the entry/exit durations.
   // Decoupling from Framer Motion's onAnimationComplete avoids races with
@@ -90,6 +92,7 @@ export const PanelFrame = ({
         <div style={contentWrapperStyleFor(narrow)}>
           <DialogPrimitive.Content
             data-testid="panel-frame"
+            data-reduced-motion={reducedMotion ? 'true' : 'false'}
             aria-labelledby={titleId}
             aria-describedby={undefined}
             onPointerDownOutside={onClose}
