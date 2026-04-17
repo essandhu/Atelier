@@ -1,33 +1,36 @@
 import {
   fetchGithubSnapshot,
   GithubFetchError,
+  loadFixtureSnapshot,
 } from '@/data/github/client';
 import type { GithubSnapshot } from '@/data/github/types';
 import { loadProfile, loadProjects } from '@/data/loaders/projects';
+import { env } from '@/lib/env';
+import { logger } from '@/lib/logger';
 import { Scene } from '@/scene/Scene';
 
-const emptySnapshot = (username: string): GithubSnapshot => ({
-  fetchedAt: new Date().toISOString(),
-  username,
-  contributions: [],
-  events: [],
-});
-
-const safeFetch = async (username: string): Promise<GithubSnapshot> => {
+const safeFetch = async (
+  username: string,
+): Promise<GithubSnapshot | null> => {
   try {
     return await fetchGithubSnapshot(username);
   } catch (err) {
     if (err instanceof GithubFetchError || err instanceof Error) {
-      return emptySnapshot(username);
+      logger.error({ err, username }, 'page.github_fetch_failed');
+      return null;
     }
-    return emptySnapshot(username);
+    logger.error({ err, username }, 'page.github_fetch_failed');
+    return null;
   }
 };
 
 const HomePage = async (): Promise<React.ReactElement> => {
   const profile = loadProfile();
   const projects = loadProjects();
-  const githubSnapshot = await safeFetch(profile.githubUsername);
+  const githubSnapshot =
+    env.NEXT_PUBLIC_GITHUB_MODE === 'fixture'
+      ? await loadFixtureSnapshot()
+      : await safeFetch(profile.githubUsername);
 
   return (
     <main className="min-h-[100dvh]">

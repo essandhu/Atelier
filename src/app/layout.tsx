@@ -20,6 +20,22 @@ interface RootLayoutProps {
 
 const RootLayout = ({ children }: RootLayoutProps): React.ReactElement => (
   <html lang="en">
+    <head>
+      <link
+        rel="preload"
+        as="font"
+        type="font/woff2"
+        href="/fonts/inter-variable.woff2"
+        crossOrigin="anonymous"
+      />
+      <link
+        rel="preload"
+        as="font"
+        type="font/woff2"
+        href="/fonts/jetbrains-mono-variable.woff2"
+        crossOrigin="anonymous"
+      />
+    </head>
     <body>
       <AccentProvider>{children}</AccentProvider>
       <noscript>

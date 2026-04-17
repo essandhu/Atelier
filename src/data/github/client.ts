@@ -7,6 +7,7 @@ import {
   githubFetchOptions,
 } from '@/data/github/cache';
 import { UserActivity, UserContributions } from '@/data/github/queries';
+import { retryFetch } from '@/data/github/retry';
 import {
   toActivityEvents,
   toContributionDays,
@@ -47,16 +48,23 @@ const postGraphQL = async <T>(
 ): Promise<T> => {
   let response: Response;
   try {
-    response = await fetch(GITHUB_GRAPHQL, {
-      method: 'POST',
-      headers: {
-        Authorization: `bearer ${env.GITHUB_PAT}`,
-        'Content-Type': 'application/json',
-        'User-Agent': 'atelier-portfolio',
+    response = await retryFetch(
+      () =>
+        fetch(GITHUB_GRAPHQL, {
+          method: 'POST',
+          headers: {
+            Authorization: `bearer ${env.GITHUB_PAT}`,
+            'Content-Type': 'application/json',
+            'User-Agent': 'atelier-portfolio',
+          },
+          body: JSON.stringify({ query, variables }),
+          ...githubFetchOptions(tag),
+        }),
+      {
+        tag,
+        onRetry: (fields, msg) => logger.warn(fields, msg),
       },
-      body: JSON.stringify({ query, variables }),
-      ...githubFetchOptions(tag),
-    });
+    );
   } catch (err) {
     logger.error({ err, tag }, 'github.fetch.network_error');
     throw new GithubFetchError('network failure', 0, err);
@@ -83,6 +91,13 @@ const postGraphQL = async <T>(
     throw new GithubFetchError('empty response', response.status);
   }
   return body.data;
+};
+
+// Fixture loader — dynamic import so the JSON never ships in the production
+// bundle. Gated by NEXT_PUBLIC_GITHUB_MODE in the caller (`app/page.tsx`).
+export const loadFixtureSnapshot = async (): Promise<GithubSnapshot> => {
+  const mod = await import('../../../tests/e2e/fixtures/github-mock.json');
+  return (mod.default ?? mod) as unknown as GithubSnapshot;
 };
 
 export const fetchGithubSnapshot = async (
