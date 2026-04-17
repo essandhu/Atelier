@@ -1,0 +1,570 @@
+{
+  "fetchedAt": "2026-04-01T12:00:00.000Z",
+  "username": "atelier-fixture",
+  "contributions": [
+    {
+      "date": "2026-01-02",
+      "count": 0,
+      "level": 0
+    },
+    {
+      "date": "2026-01-03",
+      "count": 1,
+      "level": 1
+    },
+    {
+      "date": "2026-01-04",
+      "count": 5,
+      "level": 2
+    },
+    {
+      "date": "2026-01-05",
+      "count": 1,
+      "level": 1
+    },
+    {
+      "date": "2026-01-06",
+      "count": 0,
+      "level": 0
+    },
+    {
+      "date": "2026-01-07",
+      "count": 11,
+      "level": 3
+    },
+    {
+      "date": "2026-01-08",
+      "count": 5,
+      "level": 2
+    },
+    {
+      "date": "2026-01-09",
+      "count": 19,
+      "level": 4
+    },
+    {
+      "date": "2026-01-10",
+      "count": 1,
+      "level": 1
+    },
+    {
+      "date": "2026-01-11",
+      "count": 0,
+      "level": 0
+    },
+    {
+      "date": "2026-01-12",
+      "count": 5,
+      "level": 2
+    },
+    {
+      "date": "2026-01-13",
+      "count": 11,
+      "level": 3
+    },
+    {
+      "date": "2026-01-14",
+      "count": 1,
+      "level": 1
+    },
+    {
+      "date": "2026-01-15",
+      "count": 0,
+      "level": 0
+    },
+    {
+      "date": "2026-01-16",
+      "count": 19,
+      "level": 4
+    },
+    {
+      "date": "2026-01-17",
+      "count": 5,
+      "level": 2
+    },
+    {
+      "date": "2026-01-18",
+      "count": 1,
+      "level": 1
+    },
+    {
+      "date": "2026-01-19",
+      "count": 11,
+      "level": 3
+    },
+    {
+      "date": "2026-01-20",
+      "count": 0,
+      "level": 0
+    },
+    {
+      "date": "2026-01-21",
+      "count": 1,
+      "level": 1
+    },
+    {
+      "date": "2026-01-22",
+      "count": 5,
+      "level": 2
+    },
+    {
+      "date": "2026-01-23",
+      "count": 1,
+      "level": 1
+    },
+    {
+      "date": "2026-01-24",
+      "count": 0,
+      "level": 0
+    },
+    {
+      "date": "2026-01-25",
+      "count": 11,
+      "level": 3
+    },
+    {
+      "date": "2026-01-26",
+      "count": 5,
+      "level": 2
+    },
+    {
+      "date": "2026-01-27",
+      "count": 19,
+      "level": 4
+    },
+    {
+      "date": "2026-01-28",
+      "count": 1,
+      "level": 1
+    },
+    {
+      "date": "2026-01-29",
+      "count": 0,
+      "level": 0
+    },
+    {
+      "date": "2026-01-30",
+      "count": 5,
+      "level": 2
+    },
+    {
+      "date": "2026-01-31",
+      "count": 11,
+      "level": 3
+    },
+    {
+      "date": "2026-02-01",
+      "count": 1,
+      "level": 1
+    },
+    {
+      "date": "2026-02-02",
+      "count": 0,
+      "level": 0
+    },
+    {
+      "date": "2026-02-03",
+      "count": 19,
+      "level": 4
+    },
+    {
+      "date": "2026-02-04",
+      "count": 5,
+      "level": 2
+    },
+    {
+      "date": "2026-02-05",
+      "count": 1,
+      "level": 1
+    },
+    {
+      "date": "2026-02-06",
+      "count": 11,
+      "level": 3
+    },
+    {
+      "date": "2026-02-07",
+      "count": 0,
+      "level": 0
+    },
+    {
+      "date": "2026-02-08",
+      "count": 1,
+      "level": 1
+    },
+    {
+      "date": "2026-02-09",
+      "count": 5,
+      "level": 2
+    },
+    {
+      "date": "2026-02-10",
+      "count": 1,
+      "level": 1
+    },
+    {
+      "date": "2026-02-11",
+      "count": 0,
+      "level": 0
+    },
+    {
+      "date": "2026-02-12",
+      "count": 11,
+      "level": 3
+    },
+    {
+      "date": "2026-02-13",
+      "count": 5,
+      "level": 2
+    },
+    {
+      "date": "2026-02-14",
+      "count": 19,
+      "level": 4
+    },
+    {
+      "date": "2026-02-15",
+      "count": 1,
+      "level": 1
+    },
+    {
+      "date": "2026-02-16",
+      "count": 0,
+      "level": 0
+    },
+    {
+      "date": "2026-02-17",
+      "count": 5,
+      "level": 2
+    },
+    {
+      "date": "2026-02-18",
+      "count": 11,
+      "level": 3
+    },
+    {
+      "date": "2026-02-19",
+      "count": 1,
+      "level": 1
+    },
+    {
+      "date": "2026-02-20",
+      "count": 0,
+      "level": 0
+    },
+    {
+      "date": "2026-02-21",
+      "count": 19,
+      "level": 4
+    },
+    {
+      "date": "2026-02-22",
+      "count": 5,
+      "level": 2
+    },
+    {
+      "date": "2026-02-23",
+      "count": 1,
+      "level": 1
+    },
+    {
+      "date": "2026-02-24",
+      "count": 11,
+      "level": 3
+    },
+    {
+      "date": "2026-02-25",
+      "count": 0,
+      "level": 0
+    },
+    {
+      "date": "2026-02-26",
+      "count": 1,
+      "level": 1
+    },
+    {
+      "date": "2026-02-27",
+      "count": 5,
+      "level": 2
+    },
+    {
+      "date": "2026-02-28",
+      "count": 1,
+      "level": 1
+    },
+    {
+      "date": "2026-03-01",
+      "count": 0,
+      "level": 0
+    },
+    {
+      "date": "2026-03-02",
+      "count": 11,
+      "level": 3
+    },
+    {
+      "date": "2026-03-03",
+      "count": 5,
+      "level": 2
+    },
+    {
+      "date": "2026-03-04",
+      "count": 19,
+      "level": 4
+    },
+    {
+      "date": "2026-03-05",
+      "count": 1,
+      "level": 1
+    },
+    {
+      "date": "2026-03-06",
+      "count": 0,
+      "level": 0
+    },
+    {
+      "date": "2026-03-07",
+      "count": 5,
+      "level": 2
+    },
+    {
+      "date": "2026-03-08",
+      "count": 11,
+      "level": 3
+    },
+    {
+      "date": "2026-03-09",
+      "count": 1,
+      "level": 1
+    },
+    {
+      "date": "2026-03-10",
+      "count": 0,
+      "level": 0
+    },
+    {
+      "date": "2026-03-11",
+      "count": 19,
+      "level": 4
+    },
+    {
+      "date": "2026-03-12",
+      "count": 5,
+      "level": 2
+    },
+    {
+      "date": "2026-03-13",
+      "count": 1,
+      "level": 1
+    },
+    {
+      "date": "2026-03-14",
+      "count": 11,
+      "level": 3
+    },
+    {
+      "date": "2026-03-15",
+      "count": 0,
+      "level": 0
+    },
+    {
+      "date": "2026-03-16",
+      "count": 1,
+      "level": 1
+    },
+    {
+      "date": "2026-03-17",
+      "count": 5,
+      "level": 2
+    },
+    {
+      "date": "2026-03-18",
+      "count": 1,
+      "level": 1
+    },
+    {
+      "date": "2026-03-19",
+      "count": 0,
+      "level": 0
+    },
+    {
+      "date": "2026-03-20",
+      "count": 11,
+      "level": 3
+    },
+    {
+      "date": "2026-03-21",
+      "count": 5,
+      "level": 2
+    },
+    {
+      "date": "2026-03-22",
+      "count": 19,
+      "level": 4
+    },
+    {
+      "date": "2026-03-23",
+      "count": 1,
+      "level": 1
+    },
+    {
+      "date": "2026-03-24",
+      "count": 0,
+      "level": 0
+    },
+    {
+      "date": "2026-03-25",
+      "count": 5,
+      "level": 2
+    },
+    {
+      "date": "2026-03-26",
+      "count": 11,
+      "level": 3
+    },
+    {
+      "date": "2026-03-27",
+      "count": 1,
+      "level": 1
+    },
+    {
+      "date": "2026-03-28",
+      "count": 0,
+      "level": 0
+    },
+    {
+      "date": "2026-03-29",
+      "count": 19,
+      "level": 4
+    },
+    {
+      "date": "2026-03-30",
+      "count": 5,
+      "level": 2
+    },
+    {
+      "date": "2026-03-31",
+      "count": 1,
+      "level": 1
+    },
+    {
+      "date": "2026-04-01",
+      "count": 11,
+      "level": 3
+    }
+  ],
+  "events": [
+    {
+      "id": "evt-1",
+      "at": "2026-04-01T12:00:00.000Z",
+      "repo": "octocat/hello-world",
+      "kind": "release",
+      "title": "v0.3.0 — live activity book",
+      "url": "https://github.com/octocat/hello-world/commit/evt-1"
+    },
+    {
+      "id": "evt-2",
+      "at": "2026-04-01T09:00:00.000Z",
+      "repo": "octocat/spoon-knife",
+      "kind": "pr_merged",
+      "title": "feat: static evening scene composition",
+      "url": "https://github.com/octocat/spoon-knife/commit/evt-2"
+    },
+    {
+      "id": "evt-3",
+      "at": "2026-04-01T06:00:00.000Z",
+      "repo": "octocat/atelier",
+      "kind": "commit",
+      "title": "refactor: tighten scene module boundaries",
+      "url": "https://github.com/octocat/atelier/commit/evt-3"
+    },
+    {
+      "id": "evt-4",
+      "at": "2026-04-01T03:00:00.000Z",
+      "repo": "octocat/desk-runtime",
+      "kind": "pr_opened",
+      "title": "feat: draft live-activity book",
+      "url": "https://github.com/octocat/desk-runtime/commit/evt-4"
+    },
+    {
+      "id": "evt-5",
+      "at": "2026-04-01T00:00:00.000Z",
+      "repo": "octocat/lightmaps",
+      "kind": "issue",
+      "title": "tracking: bump R3F to the React-19 line",
+      "url": "https://github.com/octocat/lightmaps/commit/evt-5"
+    },
+    {
+      "id": "evt-6",
+      "at": "2026-03-31T21:00:00.000Z",
+      "repo": "octocat/hello-world",
+      "kind": "pr_merged",
+      "title": "feat: static evening scene composition",
+      "url": "https://github.com/octocat/hello-world/commit/evt-6"
+    },
+    {
+      "id": "evt-7",
+      "at": "2026-03-31T18:00:00.000Z",
+      "repo": "octocat/spoon-knife",
+      "kind": "commit",
+      "title": "refactor: tighten scene module boundaries",
+      "url": "https://github.com/octocat/spoon-knife/commit/evt-7"
+    },
+    {
+      "id": "evt-8",
+      "at": "2026-03-31T15:00:00.000Z",
+      "repo": "octocat/atelier",
+      "kind": "release",
+      "title": "v0.3.0 — live activity book",
+      "url": "https://github.com/octocat/atelier/commit/evt-8"
+    },
+    {
+      "id": "evt-9",
+      "at": "2026-03-31T12:00:00.000Z",
+      "repo": "octocat/desk-runtime",
+      "kind": "issue",
+      "title": "tracking: bump R3F to the React-19 line",
+      "url": "https://github.com/octocat/desk-runtime/commit/evt-9"
+    },
+    {
+      "id": "evt-10",
+      "at": "2026-03-31T09:00:00.000Z",
+      "repo": "octocat/lightmaps",
+      "kind": "pr_opened",
+      "title": "feat: draft live-activity book",
+      "url": "https://github.com/octocat/lightmaps/commit/evt-10"
+    },
+    {
+      "id": "evt-11",
+      "at": "2026-03-31T06:00:00.000Z",
+      "repo": "octocat/hello-world",
+      "kind": "commit",
+      "title": "refactor: tighten scene module boundaries",
+      "url": "https://github.com/octocat/hello-world/commit/evt-11"
+    },
+    {
+      "id": "evt-12",
+      "at": "2026-03-31T03:00:00.000Z",
+      "repo": "octocat/spoon-knife",
+      "kind": "pr_merged",
+      "title": "feat: static evening scene composition",
+      "url": "https://github.com/octocat/spoon-knife/commit/evt-12"
+    },
+    {
+      "id": "evt-13",
+      "at": "2026-03-31T00:00:00.000Z",
+      "repo": "octocat/atelier",
+      "kind": "commit",
+      "title": "refactor: tighten scene module boundaries",
+      "url": "https://github.com/octocat/atelier/commit/evt-13"
+    },
+    {
+      "id": "evt-14",
+      "at": "2026-03-30T21:00:00.000Z",
+      "repo": "octocat/desk-runtime",
+      "kind": "issue",
+      "title": "tracking: bump R3F to the React-19 line",
+      "url": "https://github.com/octocat/desk-runtime/commit/evt-14"
+    }
+  ]
+}

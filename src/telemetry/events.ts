@@ -1,3 +1,7 @@
+// Typed product-event union. Phase 3 touches nothing here:
+// `github_fetch_error_total` is a metric derived from `logger.error` topics
+// (see architecture §7.2), not a product event. Phase 4 wires the existing
+// `panel.opened` / `panel.closed` entries to real panel dispatchers.
 import type { TimeOfDayState } from '@/time-of-day/types';
 
 export type Event =

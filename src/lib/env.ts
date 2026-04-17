@@ -8,6 +8,7 @@ const serverSchema = z.object({
   GITHUB_USERNAME: z.string().min(1, 'GITHUB_USERNAME is required'),
   REVALIDATE_SECRET: z.string().min(1, 'REVALIDATE_SECRET is required'),
   NEXT_PUBLIC_SENTRY_DSN: z.string().url().optional().or(z.literal('').transform(() => undefined)),
+  NEXT_PUBLIC_GITHUB_MODE: z.enum(['live', 'fixture']).default('live'),
   SENTRY_AUTH_TOKEN: z.string().optional(),
   LOG_LEVEL: logLevel.default('info'),
   VERCEL_ENV: z
