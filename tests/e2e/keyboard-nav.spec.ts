@@ -118,3 +118,149 @@ test('After dismissing intro, Tab walks skip → project books in TAB_ORDER sequ
   // +1 for the invisible `project-book-stack` sentinel <div>.
   expect(stackCount).toBe(expectedBookIds.length + 1);
 });
+
+test('Tab continues through project books → skills-catalog → globe', async ({
+  page,
+}) => {
+  await dismissIntro(page);
+  await page.goto('/?time=evening');
+  await expect(page.getByTestId('scene-canvas').locator('canvas')).toBeAttached(
+    { timeout: 15_000 },
+  );
+  await expect(page.getByTestId('skills-catalog-hotspot')).toBeAttached({
+    timeout: 15_000,
+  });
+  await expect(page.getByTestId('globe-hotspot')).toBeAttached({
+    timeout: 15_000,
+  });
+
+  await resetFocusToBody(page);
+
+  // Skip → 4 project books (100..103) → skills-catalog (150) → globe (160).
+  await page.keyboard.press('Tab');
+  expect(await focusedTestId(page)).toBe('skip-to-fallback');
+  for (const id of ['atelier', 'synapse-oms', 'sentinel', 'aurora-ui']) {
+    await page.keyboard.press('Tab');
+    expect(await focusedTestId(page)).toBe(`project-book-${id}`);
+  }
+  await page.keyboard.press('Tab');
+  expect(await focusedTestId(page)).toBe('skills-catalog-hotspot');
+  await page.keyboard.press('Tab');
+  expect(await focusedTestId(page)).toBe('globe-hotspot');
+});
+
+test('Focus restoration — project panel Escape returns focus to book', async ({
+  page,
+}) => {
+  await dismissIntro(page);
+  await page.goto('/?time=evening');
+  await expect(page.getByTestId('scene-canvas').locator('canvas')).toBeAttached(
+    { timeout: 15_000 },
+  );
+  await expect(page.getByTestId('project-book-atelier')).toBeAttached({
+    timeout: 15_000,
+  });
+
+  await resetFocusToBody(page);
+  // Tab to the first book.
+  await page.keyboard.press('Tab'); // skip
+  await page.keyboard.press('Tab'); // book 0 = atelier
+  expect(await focusedTestId(page)).toBe('project-book-atelier');
+
+  await page.keyboard.press('Enter');
+  await expect(page.getByTestId('project-panel-atelier')).toBeVisible();
+
+  await page.keyboard.press('Escape');
+  await expect(page.getByTestId('project-panel-atelier')).not.toBeVisible();
+
+  // ProjectBook.tsx restores focus on `phase === 'closed'` via anchorRef.focus().
+  await expect
+    .poll(() => focusedTestId(page))
+    .toBe('project-book-atelier');
+});
+
+test('Focus restoration — skills panel Escape returns focus to catalog hotspot', async ({
+  page,
+}) => {
+  await dismissIntro(page);
+  await page.goto('/?time=evening');
+  await expect(page.getByTestId('scene-canvas').locator('canvas')).toBeAttached(
+    { timeout: 15_000 },
+  );
+  await expect(page.getByTestId('skills-catalog-hotspot')).toBeAttached({
+    timeout: 15_000,
+  });
+
+  await page.getByTestId('skills-catalog-hotspot').focus();
+  expect(await focusedTestId(page)).toBe('skills-catalog-hotspot');
+
+  await page.keyboard.press('Enter');
+  await expect(page.getByTestId('skills-catalog-panel')).toBeVisible();
+
+  await page.keyboard.press('Escape');
+  await expect(page.getByTestId('skills-catalog-panel')).not.toBeVisible();
+
+  // Radix Dialog restores focus to the opener on close; opener was the
+  // skills-catalog hotspot.
+  await expect
+    .poll(() => focusedTestId(page))
+    .toBe('skills-catalog-hotspot');
+});
+
+test('Focus restoration — globe panel Escape returns focus to globe hotspot', async ({
+  page,
+}) => {
+  await dismissIntro(page);
+  await page.goto('/?time=evening');
+  await expect(page.getByTestId('scene-canvas').locator('canvas')).toBeAttached(
+    { timeout: 15_000 },
+  );
+  await expect(page.getByTestId('globe-hotspot')).toBeAttached({
+    timeout: 15_000,
+  });
+
+  await page.getByTestId('globe-hotspot').focus();
+  expect(await focusedTestId(page)).toBe('globe-hotspot');
+
+  await page.keyboard.press('Enter');
+  await expect(page.getByTestId('globe-panel')).toBeVisible();
+
+  await page.keyboard.press('Escape');
+  await expect(page.getByTestId('globe-panel')).not.toBeVisible();
+
+  await expect
+    .poll(() => focusedTestId(page))
+    .toBe('globe-hotspot');
+});
+
+test('Focus-visible renders a visible outline on the focused scene anchor', async ({
+  page,
+}) => {
+  await dismissIntro(page);
+  await page.goto('/?time=evening');
+  await expect(page.getByTestId('scene-canvas').locator('canvas')).toBeAttached(
+    { timeout: 15_000 },
+  );
+  await expect(page.getByTestId('project-book-atelier')).toBeAttached({
+    timeout: 15_000,
+  });
+
+  await resetFocusToBody(page);
+  // Keyboard-Tab triggers :focus-visible; pointer/script focus does not.
+  await page.keyboard.press('Tab'); // skip
+  await page.keyboard.press('Tab'); // first book
+  expect(await focusedTestId(page)).toBe('project-book-atelier');
+
+  // `.scene-focus-ring:focus-visible` renders `outline: 2px solid var(--accent)`.
+  // The computed outline-width is reported as a px value ≥ 1 when the ring is
+  // visible; resilient to accent-color variations per time-of-day state.
+  const outlineWidthPx = await page.evaluate(() => {
+    const el = document.activeElement as HTMLElement | null;
+    if (!el) return 0;
+    const cs = getComputedStyle(el);
+    const raw = cs.outlineWidth;
+    const parsed = parseFloat(raw);
+    return Number.isFinite(parsed) ? parsed : 0;
+  });
+  expect(outlineWidthPx).toBeGreaterThanOrEqual(1);
+});

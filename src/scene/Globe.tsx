@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
-import { sceneStore } from '@/store/scene-store';
+import { sceneStore, useSceneStore } from '@/store/scene-store';
 import { prefsStore, usePrefsStore } from '@/store/prefs-store';
 import { TAB_ORDER } from '@/interaction/tab-order';
 import {
@@ -82,6 +82,23 @@ export const Globe = (): React.ReactElement => {
       reducedMotionRef.current = s.reducedMotion;
     });
   }, []);
+
+  // Focus restoration (P9-08 parity with ProjectBook.tsx). Radix Dialog's
+  // built-in restoration loses the opener when the trigger is portaled
+  // through drei `<Html>`, so we drive it explicitly from the phase machine.
+  const phase = useSceneStore((s) => s.phase);
+  const activePanel = useSceneStore((s) => s.activePanel);
+  const wasActiveRef = useRef(false);
+  useEffect(() => {
+    const isGlobeActive = activePanel?.kind === 'globe';
+    if (isGlobeActive && phase === 'opening') {
+      wasActiveRef.current = true;
+    }
+    if (phase === 'closed' && wasActiveRef.current) {
+      anchorRef.current?.focus();
+      wasActiveRef.current = false;
+    }
+  }, [phase, activePanel]);
 
   useFrame((_, delta) => {
     const sphere = sphereRef.current;
@@ -235,6 +252,7 @@ export const Globe = (): React.ReactElement => {
           data-testid="globe-hotspot"
           data-globe-rotation="0.000"
           data-reduced-motion={reducedMotion ? 'true' : 'false'}
+          className="scene-focus-ring"
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}

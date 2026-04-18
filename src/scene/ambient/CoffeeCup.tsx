@@ -125,7 +125,7 @@ export const CoffeeCup = (): React.ReactElement => {
         rotation={[Math.PI / 2, 0, 0]}
         castShadow
       >
-        <torusGeometry args={[0.022, 0.006, 12, 16, Math.PI]} />
+        <torusGeometry args={[0.022, 0.006, 12, 12, Math.PI]} />
         <meshStandardMaterial color={CUP_COLOR} roughness={0.55} />
       </mesh>
 

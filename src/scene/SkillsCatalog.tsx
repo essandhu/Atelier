@@ -1,10 +1,10 @@
 'use client';
 
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
-import { sceneStore } from '@/store/scene-store';
+import { sceneStore, useSceneStore } from '@/store/scene-store';
 import { TAB_ORDER } from '@/interaction/tab-order';
 import {
   SKILLS_CATALOG_POSITION,
@@ -21,9 +21,27 @@ const CARD_ROWS = 4;
 export const SkillsCatalog = (): React.ReactElement => {
   const groupRef = useRef<THREE.Group>(null);
   const cardMatRef = useRef<THREE.MeshStandardMaterial>(null);
+  const anchorRef = useRef<HTMLDivElement>(null);
   const hoverRef = useRef(0);
   const [w, h, d] = SKILLS_CATALOG_SIZE;
   const accent = getAccent();
+
+  // Focus restoration (P9-08 parity with ProjectBook.tsx). Radix Dialog's
+  // built-in restoration loses the opener when the trigger is portaled
+  // through drei `<Html>`, so we drive it explicitly from the phase machine.
+  const phase = useSceneStore((s) => s.phase);
+  const activePanel = useSceneStore((s) => s.activePanel);
+  const wasActiveRef = useRef(false);
+  useEffect(() => {
+    const isSkillsActive = activePanel?.kind === 'skills';
+    if (isSkillsActive && phase === 'opening') {
+      wasActiveRef.current = true;
+    }
+    if (phase === 'closed' && wasActiveRef.current) {
+      anchorRef.current?.focus();
+      wasActiveRef.current = false;
+    }
+  }, [phase, activePanel]);
 
   useFrame(() => {
     const group = groupRef.current;
@@ -102,11 +120,13 @@ export const SkillsCatalog = (): React.ReactElement => {
 
       <Html center>
         <div
+          ref={anchorRef}
           tabIndex={TAB_ORDER.skillsCatalog}
           role="button"
           aria-haspopup="dialog"
           aria-label="Skills catalog — press Enter to open"
           data-testid="skills-catalog-hotspot"
+          className="scene-focus-ring"
           onKeyDown={onKeyDown}
           style={{ width: 0, height: 0, opacity: 0 }}
         />

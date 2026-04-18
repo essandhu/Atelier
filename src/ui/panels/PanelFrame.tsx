@@ -106,10 +106,17 @@ export const PanelFrame = ({
               outline: 0,
             }}
           >
+            {/*
+              Radix requires a DialogTitle for a11y; the panel content below
+              already renders its own visible heading with id={titleId}, and
+              aria-labelledby on DialogContent routes the accessible name
+              there. The visually-hidden title exists only to satisfy Radix
+              and must NOT share an id with the visible heading (duplicate
+              ids are a serious-impact axe violation — see P9-06 contract
+              test).
+            */}
             <VisuallyHiddenPrimitive.Root asChild>
-              <DialogPrimitive.Title id={titleId}>
-                {ariaLabel}
-              </DialogPrimitive.Title>
+              <DialogPrimitive.Title>{ariaLabel}</DialogPrimitive.Title>
             </VisuallyHiddenPrimitive.Root>
             <motion.div
               initial={{ opacity: 0, y: 8 }}

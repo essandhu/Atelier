@@ -1,6 +1,7 @@
 'use client';
 
 import { Suspense, useEffect, useMemo, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import { Canvas } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Camera } from '@/scene/Camera';
@@ -23,8 +24,25 @@ import { LiveActivityBook } from '@/scene/live-activity/LiveActivityBook';
 import { useNewEvents } from '@/scene/live-activity/useNewEvents';
 import { Lightmaps } from '@/scene/lighting/Lightmaps';
 import { RealTimeLights } from '@/scene/lighting/RealTimeLights';
-import { Effects } from '@/scene/post-processing/Effects';
 import { ProjectBookStack } from '@/scene/project-books/ProjectBookStack';
+
+// Lazy-load post-processing out of the initial bundle (P9-03). The
+// @react-three/postprocessing + postprocessing libraries contribute
+// ~30–60 KB gzipped of GPU-only code that never needs to block first scene
+// frame — the canvas is already compositing ambient + lamp + desk in frame
+// 0, so effects can mount one frame late with zero user-visible pop.
+// Suspense fallback is `null` because the cosmetic layer has no meaningful
+// placeholder. `verify-bundle-size.mjs` asserts neither 'postprocessing'
+// nor '@react-three/postprocessing' chunks land in `/`'s initial manifest
+// entry. ColorGrade rides the same boundary via its transitive import from
+// Effects.tsx.
+const Effects = dynamic(
+  () =>
+    import('@/scene/post-processing/Effects').then((m) => ({
+      default: m.Effects,
+    })),
+  { ssr: false, loading: () => null },
+);
 import { useGlobalKeyboard } from '@/interaction/keyboard';
 import { usePointerMissed } from '@/interaction/pointer';
 import { sceneStore, useSceneStore } from '@/store/scene-store';
