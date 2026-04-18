@@ -18,7 +18,7 @@ export const Lamp = forwardRef<THREE.Mesh>((_, bulbRef) => {
   return (
     <group position={BASE_POSITION}>
       <mesh position={[0, 0.01, 0]} castShadow receiveShadow>
-        <cylinderGeometry args={[0.12, 0.14, 0.02, 32]} />
+        <cylinderGeometry args={[0.12, 0.14, 0.02, 24]} />
         <meshStandardMaterial color={BODY_COLOR} roughness={0.55} metalness={0.35} />
       </mesh>
 
@@ -28,7 +28,7 @@ export const Lamp = forwardRef<THREE.Mesh>((_, bulbRef) => {
       </mesh>
 
       <mesh position={[0, 0.5, 0]} castShadow>
-        <coneGeometry args={[0.18, 0.22, 32, 1, true]} />
+        <coneGeometry args={[0.18, 0.22, 24, 1, true]} />
         <meshStandardMaterial
           color={BODY_COLOR}
           side={THREE.DoubleSide}

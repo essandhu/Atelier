@@ -16,9 +16,24 @@ const formatCoordinates = (lat: number, lon: number): string => {
   return `${Math.abs(lat).toFixed(1)}°${ns}, ${Math.abs(lon).toFixed(1)}°${ew}`;
 };
 
+// Screen readers narrate "31.0°N" as "thirty one point zero degree N" — the
+// "°N" cluster is read as two separate characters on some SR/locale pairs.
+// Rebuild the same value as a sentence so the narration is legible.
+const narrateCoordinates = (lat: number, lon: number): string => {
+  const nsWord = lat >= 0 ? 'north' : 'south';
+  const ewWord = lon >= 0 ? 'east' : 'west';
+  const latAbs = Math.abs(lat).toFixed(1);
+  const lonAbs = Math.abs(lon).toFixed(1);
+  return `${latAbs} degrees ${nsWord}, ${lonAbs} degrees ${ewWord}`;
+};
+
 export const GlobePanel = ({ onClose }: GlobePanelProps): React.ReactElement => {
   const profile = loadProfile();
   const coords = formatCoordinates(
+    locationCoordinates.lat,
+    locationCoordinates.lon,
+  );
+  const coordsNarration = narrateCoordinates(
     locationCoordinates.lat,
     locationCoordinates.lon,
   );
@@ -31,7 +46,6 @@ export const GlobePanel = ({ onClose }: GlobePanelProps): React.ReactElement => 
     >
       <div data-testid="globe-panel">
         <p
-          id={TITLE_ID}
           style={{
             fontSize: '0.75rem',
             textTransform: 'uppercase',
@@ -42,7 +56,8 @@ export const GlobePanel = ({ onClose }: GlobePanelProps): React.ReactElement => 
         >
           Currently based in
         </p>
-        <p
+        <h2
+          id={TITLE_ID}
           style={{
             fontSize: '1.5rem',
             fontWeight: 600,
@@ -51,8 +66,9 @@ export const GlobePanel = ({ onClose }: GlobePanelProps): React.ReactElement => 
           }}
         >
           {profile.location}
-        </p>
+        </h2>
         <p
+          aria-label={coordsNarration}
           style={{
             fontSize: '0.85rem',
             color: 'rgba(232, 226, 212, 0.55)',

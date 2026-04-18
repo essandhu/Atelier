@@ -25,3 +25,29 @@
   --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace,
     'Menlo', monospace;
 }
+
+/*
+ * Scene-anchor focus indicator (P9-07).
+ *
+ * Applied as a className on the drei `<Html>` anchor divs used for ProjectBook,
+ * Globe, and SkillsCatalog hotspots. The anchor stays invisible under mouse
+ * focus (outline: 0 baseline) and reveals a 2 px accent ring on :focus-visible,
+ * so keyboard users get a clear target without the scene reading as chrome.
+ *
+ * The anchor expands to an 8 px minimum box on focus so 0×0 anchors have
+ * geometry for the outline to wrap. `outline-offset` keeps the ring clear of
+ * the anchor itself; `border-radius` softens it to match the panel aesthetic.
+ */
+.scene-focus-ring {
+  outline: 0;
+}
+
+.scene-focus-ring:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 4px;
+  min-width: 8px;
+  min-height: 8px;
+  opacity: 1;
+  transition: outline-color 150ms ease-out;
+}

@@ -198,6 +198,7 @@ export const ProjectBook = ({
           aria-haspopup="dialog"
           aria-label={`Open ${project.title}`}
           data-testid={`project-book-${project.id}`}
+          className="scene-focus-ring"
           onKeyDown={onKeyDown}
           style={{ width: 0, height: 0, opacity: 0 }}
         />

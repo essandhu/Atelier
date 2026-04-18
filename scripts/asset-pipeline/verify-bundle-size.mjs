@@ -11,13 +11,34 @@
 //  - Explicit "no mediapipe in initial chunk" assertion: inspects the initial
 //    `/` manifest entry and fails if any chunk filename contains 'mediapipe'
 //    or 'tasks-vision'. The 1 MB hard ceiling stays as the catch-all.
+//
+// Phase 9 additions (P9-03):
+//  - Extend FORBIDDEN_IN_INITIAL to include 'postprocessing' and
+//    '@react-three/postprocessing'. Effects.tsx is now next/dynamic-loaded
+//    from Scene.tsx; these chunks must not appear in the initial `/` entry.
+//    The assertion keeps future refactors from accidentally re-introducing
+//    a static import of the postprocessing stack.
 import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { gzipSync } from 'node:zlib';
 
 const BUDGET_BYTES = 1024 * 1024; // 1 MB gzipped per route
-const ROOT_ROUTE_SOFT_BYTES = 600 * 1024; // 600 KB soft gate for `/`
-const FORBIDDEN_IN_INITIAL = ['mediapipe', 'tasks-vision'];
+// Phase 9 (P9-04): lowered from 600 KB → 500 KB after P9-03 moved
+// @react-three/postprocessing out of the initial chunk. Measured root
+// route post-lazy-load = 453 KB gzipped, leaving ~47 KB headroom against
+// this tightened soft gate. The 1 MB hard ceiling is unchanged — the soft
+// gate exists as a regression tripwire for Phase 10's still-to-come PBR
+// material init paths.
+const ROOT_ROUTE_SOFT_BYTES = 500 * 1024; // 500 KB soft gate for `/`
+// Chunk-name needles that MUST NOT appear in `/`'s initial manifest entry.
+// Matching is substring-based on the chunk filename; ordering is
+// documentation-only.
+const FORBIDDEN_IN_INITIAL = [
+  'mediapipe',
+  'tasks-vision',
+  'postprocessing',
+  '@react-three/postprocessing',
+];
 const BUILD_DIR = path.resolve(process.cwd(), '.next');
 const MANIFEST_PATH = path.join(BUILD_DIR, 'app-build-manifest.json');
 const STATIC_ROOT = path.join(BUILD_DIR, 'static');
@@ -86,8 +107,12 @@ const main = async () => {
     forbiddenInInitial: FORBIDDEN_IN_INITIAL,
     routes,
     staticRoot: STATIC_ROOT,
+    // Retained for backwards compatibility with the Phase 8 evidence block
+    // and CI log scrapers; `forbiddenChunkHits` is the current canonical
+    // field for P9-03 + future additions.
     mediapipeInInitialChunk: forbiddenHits.length > 0,
     mediapipeMatches: forbiddenHits,
+    forbiddenChunkHits: forbiddenHits,
   };
 
   if (forbiddenHits.length > 0) {
@@ -95,7 +120,7 @@ const main = async () => {
       JSON.stringify({
         ...report,
         status: 'fail',
-        reason: 'mediapipe / tasks-vision present in initial chunk',
+        reason: `forbidden chunks present in initial: ${forbiddenHits.join(', ')}`,
       }),
     );
     process.exit(1);

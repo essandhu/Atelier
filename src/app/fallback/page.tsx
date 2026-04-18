@@ -203,7 +203,7 @@ const FallbackPage = async (): Promise<React.ReactElement> => {
                   {group.skills.map((skill) => (
                     <li key={skill.id} className="text-sm font-mono">
                       {skill.label}
-                      <span className="opacity-50">
+                      <span className="opacity-70">
                         {' · '}
                         {skill.years}y
                       </span>
@@ -272,7 +272,7 @@ const FallbackPage = async (): Promise<React.ReactElement> => {
       </section>
 
       <footer
-        className="pt-8 border-t text-xs opacity-50"
+        className="pt-8 border-t text-xs opacity-70"
         style={{
           borderColor: 'color-mix(in oklab, var(--color-ink) 12%, transparent)',
         }}

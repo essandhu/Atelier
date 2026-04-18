@@ -71,3 +71,55 @@ files is a developer-local step — see
 [`scripts/bake-lightmaps.md`](../../scripts/bake-lightmaps.md) for the Blender
 workflow. The runtime path tolerates missing files by design, so CI is green
 whether or not the bakes are committed.
+
+## Phase 9 compression review
+
+**Date:** 2026-04-18.
+
+Phase 9 (P9-01) reviewed the encoder parameters without re-running against
+shipped assets — `public/scene/textures/` remains empty through Phase 9 by
+design, and Phase 10 owns the actual PBR authoring + commit story.
+
+### Decision
+
+Current params are correct for the Phase 10 PBR intake. **No change** to the
+encoder call shape. Updated: params moved to named constants at the top of
+`scripts/asset-pipeline/compress-textures.mjs` and logged in the per-file
+`{ status: 'ok', ... }` payload so Phase 10 can diff byte-savings
+deterministically.
+
+| Classification | Filename pattern | Encoder | Params | Reasoning |
+|---|---|---|---|---|
+| Normals | `*normal*` | UASTC | `-uastc -uastc_level 2` | Level 2 preserves vector accuracy at the smallest perceptually-lossless size for the desk/lamp/window normal set. Level 4 is 2× encode time with marginal gain on mid-frequency surfaces; level 0 shows banding on low-frequency curves. |
+| Albedo / roughness / AO / lightmaps | everything else | ETC1S | `-comp_level 2 -q 128` | `-q 128` hits the quality/size sweet spot for 1024² albedo/roughness. `-comp_level 2` balances encode time against final size. `-q 255` doubles file size for no visible gain on a portfolio scene; `-q 64` introduces block artefacts on low-contrast albedos. |
+
+### Proof-of-pipeline
+
+A 1×1 RGBA fixture PNG lives at
+`scripts/asset-pipeline/fixtures/albedo-test.png` (70 bytes). The
+`pnpm assets:build:fixture` script sets `TEXTURE_SOURCE_DIR` to that
+directory and `TEXTURE_OUTPUT_DIR` to a `tmpdir()` path, then drives
+`compress-textures.mjs` against it and asserts a non-empty `.ktx2` lands in
+the temp output. The generated `.ktx2` is **not** committed.
+
+On environments without `basisu` on `PATH` the fixture script exits
+gracefully with `{"status":"skip","reason":"basisu binary not installed"}`
+and exit code 0, mirroring the main script's no-ops-when-empty behaviour.
+Install [KTX-Software](https://github.com/BinomialLLC/basis_universal) to
+exercise the full round-trip locally.
+
+### Byte-savings verification
+
+Deferred to Phase 10. Measuring real compression ratios requires the
+committed PBR textures that Phase 10 will author. When they land, the
+per-file `uastcLevel` / `compLevel` / `q` fields in the
+`{ status: 'ok', ... }` log payload give Phase 10 a deterministic anchor
+for "params changed → expected savings delta" comparisons.
+
+### Invariants preserved
+
+- `pnpm assets:build` against an empty `assets-src/textures/` still emits
+  `{"status":"noop", ...}` and exits 0. The review did not regress the
+  no-ops-when-empty guarantee.
+- No `public/scene/textures/*.ktx2` file is added by this phase.
+- `pnpm assets:verify` (15 MB scene-asset budget) remains untouched.

@@ -3,13 +3,38 @@
 // public/scene/textures/*.ktx2. UASTC for normal maps, ETC1S for everything
 // else. Shells out to the `basisu` binary (must be on PATH); fails with an
 // actionable message if it is missing or the staging directory is absent.
+//
+// Phase 9 (P9-01):
+// - SOURCE_DIR and OUTPUT_DIR honour TEXTURE_SOURCE_DIR / TEXTURE_OUTPUT_DIR
+//   env-var overrides so `compress-textures-fixture.mjs` can drive a
+//   round-trip against the committed fixture PNG without touching the real
+//   staging + public directories.
+// - Per-file `{ status: 'ok', ... }` payload gains `uastcLevel`, `compLevel`,
+//   `q` fields documenting the exact encoder params used. These values
+//   feed the Phase 10 byte-savings diff.
 import { mkdir, readdir, rename, rm, stat } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 
-const SOURCE_DIR = path.resolve(process.cwd(), 'assets-src/textures');
-const OUTPUT_DIR = path.resolve(process.cwd(), 'public/scene/textures');
+const resolveDir = (envName, fallback) =>
+  process.env[envName]
+    ? path.resolve(process.cwd(), process.env[envName])
+    : path.resolve(process.cwd(), fallback);
+
+const SOURCE_DIR = resolveDir('TEXTURE_SOURCE_DIR', 'assets-src/textures');
+const OUTPUT_DIR = resolveDir('TEXTURE_OUTPUT_DIR', 'public/scene/textures');
 const TEXTURE_EXT = /\.(png|jpe?g|tga|tiff?|exr)$/i;
+
+// Phase 9 params decision (P9-01): reviewed against the Phase 10 PBR intake
+// requirement. UASTC level 2 + ETC1S `-comp_level 2 -q 128` remain the
+// correct call for a portfolio scene — UASTC 2 preserves normal-map vector
+// accuracy at the smallest size still perceptually lossless, and ETC1S
+// q=128 hits the quality/size sweet spot for 1024² albedo/roughness maps.
+// Raising UASTC to 4 is 2× encode time with marginal quality gain on
+// diffuse content; lowering to 0 shows banding on low-frequency normals.
+const UASTC_LEVEL = 2;
+const ETC1S_COMP_LEVEL = 2;
+const ETC1S_Q = 128;
 
 const tryStat = async (p) => {
   try {
@@ -72,9 +97,9 @@ const encodeOne = async (file) => {
   const finalPath = path.join(OUTPUT_DIR, `${baseName}.ktx2`);
   const args = ['-ktx2', '-file', file, '-output_path', OUTPUT_DIR];
   if (mode === 'uastc') {
-    args.push('-uastc', '-uastc_level', '2');
+    args.push('-uastc', '-uastc_level', String(UASTC_LEVEL));
   } else {
-    args.push('-comp_level', '2', '-q', '128');
+    args.push('-comp_level', String(ETC1S_COMP_LEVEL), '-q', String(ETC1S_Q));
   }
   await runBasisu(args);
   // basisu writes <basename>.ktx2 into -output_path; ensure that file exists.
@@ -93,6 +118,9 @@ const encodeOne = async (file) => {
     mode,
     inputBytes,
     outputBytes: writtenInfo.size,
+    uastcLevel: mode === 'uastc' ? UASTC_LEVEL : null,
+    compLevel: mode === 'etc1s' ? ETC1S_COMP_LEVEL : null,
+    q: mode === 'etc1s' ? ETC1S_Q : null,
   };
 };
 
