@@ -5,6 +5,10 @@
  * on the start, exclusive on the conceptual cap so callers can do
  * `projectBookStart + index` up to `projectBookMax`.
  *
+ * Reading order:
+ *   skip → intro → webcam → project books → skills catalog → globe
+ *   → (eventsFeed reserved)
+ *
  * Any change here is a user-visible behaviour change — update
  * docs/keyboard-nav.md alongside.
  */
@@ -24,6 +28,11 @@ export const TAB_ORDER = {
   // collision, but the desk metaphor breaks long before then (see
   // docs/architecture.md §5 for the bookshelf Post-V1 plan).
   projectBookMax: 107,
+  // Phase 6 additions — slotted between the projectBookMax ceiling (107) and
+  // the reserved eventsFeed slot (200) so any future catalog sub-stops can
+  // claim 151..159 without renumbering.
+  skillsCatalog: 150,
+  globe: 160,
   // RESERVED — same story for the events feed: rendered inline inside
   // LiveActivityBook in V1, not yet a Tab stop. Wired here so the eventual
   // EventsFeedPanel (Section 8 / Post-V1) drops in without churn.

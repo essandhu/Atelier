@@ -17,8 +17,11 @@ test.describe('no-JS fallback', () => {
   test('GET / contains a noscript meta-refresh to /fallback', async ({
     page,
   }) => {
-    await page.goto('/');
-    const html = await page.content();
+    // With JS disabled the meta-refresh fires synchronously, so `page.content()`
+    // races with the navigation. Grab the raw response body from the HTTP
+    // request instead of relying on the live DOM snapshot.
+    const response = await page.goto('/', { waitUntil: 'commit' });
+    const html = (await response?.text()) ?? '';
     expect(html).toContain('http-equiv="refresh"');
     expect(html).toContain('url=/fallback');
   });

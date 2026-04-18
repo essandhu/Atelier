@@ -7,9 +7,16 @@ import { Camera } from '@/scene/Camera';
 import { Desk } from '@/scene/Desk';
 import { Lamp } from '@/scene/Lamp';
 import { Window } from '@/scene/Window';
+import { Globe } from '@/scene/Globe';
+import { SkillsCatalog } from '@/scene/SkillsCatalog';
 import { DustMotes } from '@/scene/ambient/DustMotes';
 import { LampBreathe } from '@/scene/ambient/LampBreathe';
 import { PageFlutter } from '@/scene/ambient/PageFlutter';
+import { CoffeeCup } from '@/scene/ambient/CoffeeCup';
+import { Plant } from '@/scene/ambient/Plant';
+import { Pen } from '@/scene/ambient/Pen';
+import { Notes } from '@/scene/ambient/Notes';
+import { RibbonSway } from '@/scene/ambient/RibbonSway';
 import { LiveActivityBook } from '@/scene/live-activity/LiveActivityBook';
 import { useNewEvents } from '@/scene/live-activity/useNewEvents';
 import { Lightmaps } from '@/scene/lighting/Lightmaps';
@@ -23,6 +30,8 @@ import { LiveRegion } from '@/ui/a11y/LiveRegion';
 import { IntroOverlay } from '@/ui/intro/IntroOverlay';
 import { StartupSequence } from '@/ui/intro/StartupSequence';
 import { ProjectPanel } from '@/ui/panels/ProjectPanel';
+import { GlobePanel } from '@/ui/panels/GlobePanel';
+import { SkillsCatalogPanel } from '@/ui/panels/SkillsCatalogPanel';
 import {
   timeOfDayStore,
   useResolvedTimeOfDay,
@@ -53,12 +62,20 @@ const ActivePanelRenderer = ({
 }): React.ReactElement | null => {
   const activePanel = useSceneStore((s) => s.activePanel);
   const phase = useSceneStore((s) => s.phase);
-  if (!activePanel || activePanel.kind !== 'project') return null;
-  if (phase === 'closed') return null;
-  const project = projects.find((p) => p.id === activePanel.id);
-  if (!project) return null;
+  if (!activePanel || phase === 'closed') return null;
   const close = () => sceneStore.getState().close();
-  return <ProjectPanel project={project} onClose={close} />;
+  if (activePanel.kind === 'project') {
+    const project = projects.find((p) => p.id === activePanel.id);
+    if (!project) return null;
+    return <ProjectPanel project={project} onClose={close} />;
+  }
+  if (activePanel.kind === 'globe') {
+    return <GlobePanel onClose={close} />;
+  }
+  if (activePanel.kind === 'skills') {
+    return <SkillsCatalogPanel onClose={close} />;
+  }
+  return null;
 };
 
 const ResolvedSceneContent = ({
@@ -88,6 +105,13 @@ const ResolvedSceneContent = ({
         pageFlutterRef={pageMeshRef}
       />
       <ProjectBookStack projects={projects} />
+      <SkillsCatalog />
+      <Globe />
+      <CoffeeCup />
+      <Plant />
+      <Pen />
+      <Notes />
+      <RibbonSway />
       <DustMotes state={state} />
       <LampBreathe targetRef={lampBulbRef} state={state} />
       <PageFlutter targetRef={pageMeshRef} />

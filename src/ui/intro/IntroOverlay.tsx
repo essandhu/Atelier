@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { usePrefsStore, prefsStore } from '@/store/prefs-store';
 import { Button } from '@/ui/primitives/button';
@@ -21,12 +21,24 @@ export const IntroOverlay = ({
   const hasSeenIntro = usePrefsStore((s) => s.hasSeenIntro);
   const reducedMotion = usePrefsStore((s) => s.reducedMotion);
   const beginRef = useRef<HTMLButtonElement>(null);
+  // localStorage-backed state diverges between server (false) and hydrated
+  // client (possibly true). Gate rendering on a post-mount flag so the
+  // server + initial-client render match (both return null).
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    beginRef.current?.focus({ preventScroll: true });
+    setHydrated(true);
   }, []);
 
-  if (hasSeenIntro) return null;
+  // Auto-focus Begin once the button has actually mounted. Keying on
+  // `hydrated` + `hasSeenIntro` matches the render gate below — otherwise the
+  // [] effect would fire on the initial-null render and miss the real ref.
+  useEffect(() => {
+    if (!hydrated || hasSeenIntro) return;
+    beginRef.current?.focus({ preventScroll: true });
+  }, [hydrated, hasSeenIntro]);
+
+  if (!hydrated || hasSeenIntro) return null;
 
   const handleBegin = (): void => {
     prefsStore.getState().dismissIntro();
