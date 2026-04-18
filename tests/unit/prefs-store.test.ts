@@ -126,6 +126,24 @@ describe('prefs-store', () => {
     expect(prefsStore.getState().webcamOptIn).toBe(true);
   });
 
+  it('setDeviceOrientationOptIn persists to localStorage', async () => {
+    installMatchMedia(false);
+    const { prefsStore } = await freshStore();
+    expect(prefsStore.getState().deviceOrientationOptIn).toBe(false);
+    prefsStore.getState().setDeviceOrientationOptIn(true);
+    expect(prefsStore.getState().deviceOrientationOptIn).toBe(true);
+    expect(localStorage.getItem('atelier:prefs:deviceOrientationOptIn')).toBe(
+      'true',
+    );
+  });
+
+  it('reads persisted deviceOrientationOptIn on init', async () => {
+    installMatchMedia(false);
+    localStorage.setItem('atelier:prefs:deviceOrientationOptIn', 'true');
+    const { prefsStore } = await freshStore();
+    expect(prefsStore.getState().deviceOrientationOptIn).toBe(true);
+  });
+
   it('tolerates localStorage throwing (private browsing)', async () => {
     installMatchMedia(false);
     const throwing = {

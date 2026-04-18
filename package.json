@@ -24,6 +24,7 @@
     "bundle:verify": "node scripts/asset-pipeline/verify-bundle-size.mjs"
   },
   "dependencies": {
+    "@mediapipe/tasks-vision": "^0.10.34",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-slot": "^1.2.4",
     "@react-three/drei": "^10.0.0",
