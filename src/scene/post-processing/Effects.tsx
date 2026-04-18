@@ -9,6 +9,7 @@ import {
 } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 import * as THREE from 'three';
+import { ColorGrade } from '@/scene/post-processing/ColorGrade';
 import { effectsParamsFor } from '@/scene/post-processing/effects-tuning';
 import type { TimeOfDayState } from '@/time-of-day/types';
 
@@ -45,6 +46,7 @@ export const Effects = ({
         blendFunction={BlendFunction.OVERLAY}
         premultiply
       />
+      <ColorGrade params={params.colorGrade} />
     </EffectComposer>
   );
 };
