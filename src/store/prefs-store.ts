@@ -4,13 +4,16 @@ import { useStore } from 'zustand';
 export interface Prefs {
   reducedMotion: boolean;
   webcamOptIn: boolean;
+  deviceOrientationOptIn: boolean;
   hasSeenIntro: boolean;
   setWebcamOptIn: (v: boolean) => void;
+  setDeviceOrientationOptIn: (v: boolean) => void;
   dismissIntro: () => void;
 }
 
 const MEDIA_QUERY = '(prefers-reduced-motion: reduce)';
 const KEY_WEBCAM = 'atelier:prefs:webcamOptIn';
+const KEY_DEVICE_ORIENTATION = 'atelier:prefs:deviceOrientationOptIn';
 const KEY_INTRO = 'atelier:prefs:hasSeenIntro';
 
 const readBoolean = (key: string): boolean => {
@@ -46,11 +49,17 @@ const seedReducedMotion = (): boolean => {
 export const prefsStore = createStore<Prefs>((set) => ({
   reducedMotion: seedReducedMotion(),
   webcamOptIn: readBoolean(KEY_WEBCAM),
+  deviceOrientationOptIn: readBoolean(KEY_DEVICE_ORIENTATION),
   hasSeenIntro: readBoolean(KEY_INTRO),
 
   setWebcamOptIn: (v) => {
     writeBoolean(KEY_WEBCAM, v);
     set({ webcamOptIn: v });
+  },
+
+  setDeviceOrientationOptIn: (v) => {
+    writeBoolean(KEY_DEVICE_ORIENTATION, v);
+    set({ deviceOrientationOptIn: v });
   },
 
   dismissIntro: () => {

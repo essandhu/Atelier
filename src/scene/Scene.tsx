@@ -43,6 +43,14 @@ import {
   subscribeToReducedMotion,
   usePrefsStore,
 } from '@/store/prefs-store';
+import {
+  webcamStreamStore,
+  disableWebcam,
+  useWebcamStreamStore,
+} from '@/store/webcam-stream-store';
+import { parallaxStore } from '@/store/parallax-store';
+import { FaceTracker } from '@/interaction/webcam/FaceTracker';
+import { DeviceOrientationListener } from '@/interaction/webcam/DeviceOrientationListener';
 import { resolve } from '@/time-of-day/resolve';
 import { track } from '@/telemetry/events';
 import type { GithubSnapshot } from '@/data/github/types';
@@ -143,6 +151,13 @@ export const Scene = (props: SceneProps): React.ReactElement => {
   useGlobalKeyboard();
   const onPointerMissed = usePointerMissed();
 
+  const webcamOptIn = usePrefsStore((s) => s.webcamOptIn);
+  const deviceOrientationOptIn = usePrefsStore(
+    (s) => s.deviceOrientationOptIn,
+  );
+  const reducedMotion = usePrefsStore((s) => s.reducedMotion);
+  const activeStream = useWebcamStreamStore((s) => s.activeStream);
+
   useEffect(() => {
     const cleanup = subscribeToReducedMotion();
     // Seed the current value in case the initial seed ran before matchMedia existed.
@@ -154,6 +169,29 @@ export const Scene = (props: SceneProps): React.ReactElement => {
     const resolved = resolve({ url: new URL(window.location.href) });
     timeOfDayStore.getState().ensureInitialized(resolved);
   }, []);
+
+  // Dev-only debug hook consumed by the Playwright webcam-flow spec to read
+  // parallax state + confirm stream teardown. Gated so it ships only in dev.
+  useEffect(() => {
+    if (
+      typeof window === 'undefined' ||
+      process.env.NODE_ENV === 'production'
+    ) {
+      return;
+    }
+    (window as unknown as Record<string, unknown>).__atelier = {
+      parallaxOffset: () => parallaxStore.getState().offset,
+      activeStream: () => webcamStreamStore.getState().activeStream,
+    };
+    return () => {
+      delete (window as unknown as Record<string, unknown>).__atelier;
+    };
+  }, []);
+
+  // If reduced-motion flips on mid-session with the webcam active, tear down.
+  useEffect(() => {
+    if (reducedMotion && webcamOptIn) disableWebcam();
+  }, [reducedMotion, webcamOptIn]);
 
   const onCanvasCreated = () => {
     if (firedRef.current) return;
@@ -191,6 +229,28 @@ export const Scene = (props: SceneProps): React.ReactElement => {
       </Canvas>
       <ResolvedStateMarker />
       <BackgroundAnchors />
+      {webcamOptIn && activeStream && !reducedMotion && (
+        <FaceTracker
+          stream={activeStream}
+          onFrameDrop={(fps) =>
+            track({
+              name: 'parallax.frame_drop',
+              source: 'webcam',
+              sampledFps: fps,
+            })
+          }
+          onError={(err) => {
+            // Log only — don't tear down on init errors (e.g. MediaPipe load
+            // failure). The stream + opt-in stay live so the user can retry
+            // or simply keep using the scene without parallax. Explicit
+            // teardown still runs through disableWebcam() via the toggle.
+            console.warn('[FaceTracker] init error', err.message);
+          }}
+        />
+      )}
+      {deviceOrientationOptIn && !reducedMotion && (
+        <DeviceOrientationListener />
+      )}
       <IntroOverlay profile={props.profile} />
       <StartupSequence lampBulbRef={lampBulbRef} />
       <LiveRegion projects={props.projects} />

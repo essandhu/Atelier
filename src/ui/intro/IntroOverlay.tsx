@@ -5,6 +5,8 @@ import { motion } from 'framer-motion';
 import { usePrefsStore, prefsStore } from '@/store/prefs-store';
 import { Button } from '@/ui/primitives/button';
 import { WebcamToggle } from '@/ui/controls/WebcamToggle';
+import { DeviceOrientationToggle } from '@/ui/controls/DeviceOrientationToggle';
+import { useIsNarrowViewport } from '@/lib/use-narrow-viewport';
 import { TAB_ORDER } from '@/interaction/tab-order';
 import { durations, easings } from '@/ui/motion/tokens';
 import type { Profile } from '@/content/profile';
@@ -20,6 +22,7 @@ export const IntroOverlay = ({
 }: IntroOverlayProps): React.ReactElement | null => {
   const hasSeenIntro = usePrefsStore((s) => s.hasSeenIntro);
   const reducedMotion = usePrefsStore((s) => s.reducedMotion);
+  const narrow = useIsNarrowViewport();
   const beginRef = useRef<HTMLButtonElement>(null);
   // localStorage-backed state diverges between server (false) and hydrated
   // client (possibly true). Gate rendering on a post-mount flag so the
@@ -126,9 +129,11 @@ export const IntroOverlay = ({
             letterSpacing: '0.01em',
           }}
         >
-          Optional: opt in to head-tracked parallax.
+          {narrow
+            ? 'Optional: opt in to tilt parallax.'
+            : 'Optional: opt in to head-tracked parallax.'}
         </p>
-        <WebcamToggle />
+        {narrow ? <DeviceOrientationToggle /> : <WebcamToggle />}
       </div>
 
       <div

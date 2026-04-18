@@ -17,8 +17,20 @@ export type Event =
   | { name: 'panel.opened'; panelId: string }
   | { name: 'panel.closed'; panelId: string; dwellMs: number }
   | { name: 'globe.spun'; durationMs: number; totalRadians: number }
+  // Intent events fire in the webcam gate on consent decisions.
+  // Runtime events fire when the FaceTracker / DeviceOrientationListener
+  // actually start/stop producing data. Mirrors the §4.3 webcam state machine.
   | { name: 'webcam.opted_in' }
   | { name: 'webcam.declined' }
+  | { name: 'webcam.enabled' }
+  | { name: 'webcam.disabled' }
+  | { name: 'device_orientation.enabled' }
+  | { name: 'device_orientation.disabled' }
+  | {
+      name: 'parallax.frame_drop';
+      source: 'webcam' | 'device_orientation';
+      sampledFps: number;
+    }
   | { name: 'fallback.viewed' };
 
 type TrackingWindow = Window & {
