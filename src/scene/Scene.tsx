@@ -9,6 +9,8 @@ import { Lamp } from '@/scene/Lamp';
 import { Window } from '@/scene/Window';
 import { Globe } from '@/scene/Globe';
 import { SkillsCatalog } from '@/scene/SkillsCatalog';
+import { Bookshelf } from '@/scene/background/Bookshelf';
+import { WallPiece } from '@/scene/background/WallPiece';
 import { DustMotes } from '@/scene/ambient/DustMotes';
 import { LampBreathe } from '@/scene/ambient/LampBreathe';
 import { PageFlutter } from '@/scene/ambient/PageFlutter';
@@ -96,7 +98,9 @@ const ResolvedSceneContent = ({
     <Lightmaps state={state}>
       <RealTimeLights state={state} />
       <Desk />
-      <Window />
+      <Window state={state} />
+      <Bookshelf />
+      <WallPiece />
       <Lamp ref={lampBulbRef} />
       <LiveActivityBook
         snapshot={githubSnapshot}
@@ -186,6 +190,7 @@ export const Scene = (props: SceneProps): React.ReactElement => {
         </Suspense>
       </Canvas>
       <ResolvedStateMarker />
+      <BackgroundAnchors />
       <IntroOverlay profile={props.profile} />
       <StartupSequence lampBulbRef={lampBulbRef} />
       <LiveRegion projects={props.projects} />
@@ -205,3 +210,18 @@ const ResolvedStateMarker = (): React.ReactElement => {
     />
   );
 };
+
+const BackgroundAnchors = (): React.ReactElement => (
+  <>
+    <div
+      aria-hidden="true"
+      data-testid="bookshelf-anchor"
+      style={{ display: 'none' }}
+    />
+    <div
+      aria-hidden="true"
+      data-testid="wall-piece-anchor"
+      style={{ display: 'none' }}
+    />
+  </>
+);

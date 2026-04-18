@@ -1,4 +1,4 @@
-import { presets } from '@/time-of-day/presets';
+import { presets, type ColorGradePreset } from '@/time-of-day/presets';
 import type { TimeOfDayState } from '@/time-of-day/types';
 
 export interface EffectsParams {
@@ -7,6 +7,7 @@ export interface EffectsParams {
   caOffset: [number, number];
   noiseOpacity: number;
   noiseAnimated: boolean;
+  colorGrade: ColorGradePreset;
 }
 
 /* Base CA offset for evening/night. Morning and day taper to ~40%. */
@@ -40,5 +41,6 @@ export const effectsParamsFor = (
     caOffset: [CA_BASE[0] * caScale, CA_BASE[1] * caScale],
     noiseOpacity,
     noiseAnimated: !reducedMotion,
+    colorGrade: preset.colorGrade,
   };
 };

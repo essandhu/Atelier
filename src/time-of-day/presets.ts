@@ -1,6 +1,13 @@
 import * as THREE from 'three';
 import type { TimeOfDayState } from './types';
 
+export interface ColorGradePreset {
+  hue: number;
+  saturation: number;
+  brightness: number;
+  contrast: number;
+}
+
 export interface TimeOfDayPreset {
   lightmap: string;
   windowColor: THREE.Color;
@@ -12,6 +19,7 @@ export interface TimeOfDayPreset {
   ambientTint: THREE.Color;
   dustMoteOpacity: number;
   liveActivityEmissionWarmth: number;
+  colorGrade: ColorGradePreset;
 }
 
 /* Evening is the phase-2 reference tuning — do not edit without re-baking. */
@@ -22,10 +30,16 @@ const evening: TimeOfDayPreset = {
   lampIntensity: 1.4,
   lampEmissionStrength: 1.1,
   bloomStrength: 0.9,
-  bloomFocus: 'lamp',
+  bloomFocus: 'both',
   ambientTint: new THREE.Color('#2a1d18'),
   dustMoteOpacity: 0.35,
   liveActivityEmissionWarmth: 0.4,
+  colorGrade: {
+    hue: -0.05,
+    saturation: 0.12,
+    brightness: 0.0,
+    contrast: 0.08,
+  },
 };
 
 const morning: TimeOfDayPreset = {
@@ -39,6 +53,12 @@ const morning: TimeOfDayPreset = {
   ambientTint: new THREE.Color('#1c2230'),
   dustMoteOpacity: 0.25,
   liveActivityEmissionWarmth: -0.15,
+  colorGrade: {
+    hue: 0.05,
+    saturation: -0.1,
+    brightness: 0.05,
+    contrast: 0.0,
+  },
 };
 
 const day: TimeOfDayPreset = {
@@ -52,6 +72,12 @@ const day: TimeOfDayPreset = {
   ambientTint: new THREE.Color('#252a31'),
   dustMoteOpacity: 0.2,
   liveActivityEmissionWarmth: 0,
+  colorGrade: {
+    hue: 0.0,
+    saturation: 0.0,
+    brightness: 0.02,
+    contrast: -0.05,
+  },
 };
 
 const night: TimeOfDayPreset = {
@@ -65,6 +91,12 @@ const night: TimeOfDayPreset = {
   ambientTint: new THREE.Color('#120f16'),
   dustMoteOpacity: 0.4,
   liveActivityEmissionWarmth: 0.5,
+  colorGrade: {
+    hue: 0.04,
+    saturation: 0.08,
+    brightness: -0.05,
+    contrast: 0.12,
+  },
 };
 
 export const presets: Record<TimeOfDayState, TimeOfDayPreset> = {

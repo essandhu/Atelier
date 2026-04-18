@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { effectsParamsFor } from '@/scene/post-processing/effects-tuning';
+import { presets } from '@/time-of-day/presets';
 import type { TimeOfDayState } from '@/time-of-day/types';
 
 const STATES: TimeOfDayState[] = ['morning', 'day', 'evening', 'night'];
@@ -57,5 +58,38 @@ describe('effectsParamsFor', () => {
       expect(p.caOffset[0]).toBeGreaterThan(0);
       expect(p.caOffset[1]).toBeGreaterThan(0);
     }
+  });
+
+  describe('colorGrade (Phase 7)', () => {
+    it('passes through the preset colorGrade per state', () => {
+      for (const s of STATES) {
+        expect(effectsParamsFor(s, false).colorGrade).toEqual(
+          presets[s].colorGrade,
+        );
+      }
+    });
+
+    it('is independent of reducedMotion', () => {
+      for (const s of STATES) {
+        expect(effectsParamsFor(s, true).colorGrade).toEqual(
+          effectsParamsFor(s, false).colorGrade,
+        );
+      }
+    });
+  });
+
+  describe('bloom emphasis distribution (Phase 7)', () => {
+    it('resolves evening to the balanced luminanceThreshold', () => {
+      const evening = effectsParamsFor('evening', false);
+      const night = effectsParamsFor('night', false);
+      const morning = effectsParamsFor('morning', false);
+      const day = effectsParamsFor('day', false);
+
+      // 'lamp' → 0.85, 'window' → 0.6, 'both' → 0.5
+      expect(evening.luminanceThreshold).toBe(0.5);
+      expect(night.luminanceThreshold).toBe(0.85);
+      expect(morning.luminanceThreshold).toBe(0.6);
+      expect(day.luminanceThreshold).toBe(0.6);
+    });
   });
 });

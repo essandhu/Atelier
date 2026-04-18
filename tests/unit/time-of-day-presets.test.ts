@@ -15,8 +15,8 @@ describe('time-of-day presets', () => {
     expect(presets.evening.windowIntensity).toBeGreaterThan(0);
   });
 
-  it('limits evening bloomFocus to lamp | window | both', () => {
-    expect(['lamp', 'window', 'both']).toContain(presets.evening.bloomFocus);
+  it('balances evening bloomFocus on both lamp and window (Phase 7)', () => {
+    expect(presets.evening.bloomFocus).toBe('both');
   });
 
   it('parses evening colors as THREE.Color instances', () => {
@@ -88,6 +88,45 @@ describe('time-of-day presets', () => {
         presets.night.lightmap,
       ]);
       expect(urls.size).toBe(4);
+    });
+  });
+
+  describe('colorGrade per state (Phase 7)', () => {
+    const STATES: TimeOfDayState[] = ['morning', 'day', 'evening', 'night'];
+
+    it('exposes a colorGrade object on every state', () => {
+      for (const state of STATES) {
+        const grade = presets[state].colorGrade;
+        expect(grade).toBeDefined();
+        expect(typeof grade.hue).toBe('number');
+        expect(typeof grade.saturation).toBe('number');
+        expect(typeof grade.brightness).toBe('number');
+        expect(typeof grade.contrast).toBe('number');
+      }
+    });
+
+    it('keeps every colorGrade field finite and within postprocessing range', () => {
+      for (const state of STATES) {
+        const { hue, saturation, brightness, contrast } =
+          presets[state].colorGrade;
+        expect(Number.isFinite(hue)).toBe(true);
+        expect(Number.isFinite(saturation)).toBe(true);
+        expect(Number.isFinite(brightness)).toBe(true);
+        expect(Number.isFinite(contrast)).toBe(true);
+        expect(Math.abs(hue)).toBeLessThanOrEqual(Math.PI);
+        expect(Math.abs(saturation)).toBeLessThanOrEqual(1);
+        expect(Math.abs(brightness)).toBeLessThanOrEqual(1);
+        expect(Math.abs(contrast)).toBeLessThanOrEqual(1);
+      }
+    });
+
+    it('gives each of the four states a distinct colorGrade fingerprint', () => {
+      const fingerprint = (state: TimeOfDayState): string => {
+        const g = presets[state].colorGrade;
+        return [g.hue, g.saturation, g.brightness, g.contrast].join('|');
+      };
+      const fingerprints = new Set(STATES.map(fingerprint));
+      expect(fingerprints.size).toBe(4);
     });
   });
 });
