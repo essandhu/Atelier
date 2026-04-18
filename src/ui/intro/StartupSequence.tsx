@@ -29,6 +29,13 @@ export const StartupSequence = ({
   const reducedMotion = usePrefsStore((s) => s.reducedMotion);
   const firedRef = useRef(false);
   const [active, setActive] = useState(!reducedMotion);
+  // Match IntroOverlay's hydration gate so the initial client render agrees
+  // with the server (both return null). Animation kicks in after mount.
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
 
   useEffect(() => {
     if (reducedMotion) {
@@ -78,7 +85,7 @@ export const StartupSequence = ({
     return () => cancelAnimationFrame(raf);
   }, [state, reducedMotion, lampBulbRef]);
 
-  if (reducedMotion || !active) return null;
+  if (!hydrated || reducedMotion || !active) return null;
 
   return (
     <div

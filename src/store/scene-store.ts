@@ -9,6 +9,17 @@ export type ActivePanel =
   | { kind: 'skills' }
   | { kind: 'globe' };
 
+export const panelIdOf = (p: ActivePanel): string => {
+  switch (p.kind) {
+    case 'project':
+      return `project:${p.id}`;
+    case 'skills':
+      return 'skills';
+    case 'globe':
+      return 'globe';
+  }
+};
+
 export interface SceneState {
   phase: PanelPhase;
   activePanel: ActivePanel | null;
@@ -34,9 +45,7 @@ export const sceneStore = createStore<SceneState>((set, get) => ({
     if (get().phase !== 'closed') return;
     const openedAt = now();
     set({ phase: 'opening', activePanel: panel, openedAt });
-    if (panel.kind === 'project') {
-      track({ name: 'panel.opened', projectId: panel.id });
-    }
+    track({ name: 'panel.opened', panelId: panelIdOf(panel) });
   },
 
   markOpened: () => {
@@ -48,9 +57,13 @@ export const sceneStore = createStore<SceneState>((set, get) => ({
     const { phase, activePanel, openedAt } = get();
     if (phase === 'closed' || phase === 'closing') return;
     set({ phase: 'closing' });
-    if (activePanel?.kind === 'project') {
+    if (activePanel) {
       const dwellMs = openedAt !== null ? now() - openedAt : 0;
-      track({ name: 'panel.closed', projectId: activePanel.id, dwellMs });
+      track({
+        name: 'panel.closed',
+        panelId: panelIdOf(activePanel),
+        dwellMs,
+      });
     }
   },
 

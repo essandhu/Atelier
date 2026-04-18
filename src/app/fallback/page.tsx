@@ -11,7 +11,7 @@ import {
   loadFixtureSnapshot,
 } from '@/data/github/client';
 import type { Project } from '@/content/projects/schemas';
-import type { Skill } from '@/content/skills/schemas';
+import { groupSkills } from '@/content/skills/grouping';
 import { env } from '@/lib/env';
 import { logger } from '@/lib/logger';
 
@@ -26,16 +26,6 @@ const fetchTotal = async (username: string): Promise<number | null> => {
     if (err instanceof GithubFetchError) return null;
     throw err;
   }
-};
-
-const groupSkills = (skills: Skill[]): Record<string, Skill[]> => {
-  const grouped: Record<string, Skill[]> = {};
-  for (const skill of skills) {
-    const bucket = grouped[skill.category] ?? [];
-    bucket.push(skill);
-    grouped[skill.category] = bucket;
-  }
-  return grouped;
 };
 
 const renderProjectItem = (project: Project): React.ReactElement => {
@@ -93,14 +83,6 @@ const renderProjectItem = (project: Project): React.ReactElement => {
   );
 };
 
-const SKILL_CATEGORY_LABEL: Record<string, string> = {
-  frontend: 'Frontend',
-  creative3d: 'Creative / 3D',
-  backend: 'Backend',
-  tooling: 'Tooling',
-  product: 'Product',
-};
-
 const FallbackPage = async (): Promise<React.ReactElement> => {
   const profile = loadProfile();
   const projects = loadProjects();
@@ -110,8 +92,7 @@ const FallbackPage = async (): Promise<React.ReactElement> => {
 
   logger.info({ page: 'fallback' }, 'fallback_viewed');
 
-  const groupedSkills = groupSkills(skills);
-  const skillOrder = ['frontend', 'creative3d', 'backend', 'tooling', 'product'];
+  const skillGroups = groupSkills(skills);
 
   return (
     <main
@@ -212,28 +193,26 @@ const FallbackPage = async (): Promise<React.ReactElement> => {
           Skills
         </h2>
         <dl className="space-y-6">
-          {skillOrder
-            .filter((cat) => groupedSkills[cat])
-            .map((cat) => (
-              <div key={cat}>
-                <dt className="text-sm uppercase tracking-widest opacity-60 mb-2">
-                  {SKILL_CATEGORY_LABEL[cat] ?? cat}
-                </dt>
-                <dd>
-                  <ul className="flex flex-wrap gap-x-4 gap-y-1">
-                    {groupedSkills[cat].map((skill) => (
-                      <li key={skill.id} className="text-sm font-mono">
-                        {skill.label}
-                        <span className="opacity-50">
-                          {' · '}
-                          {skill.years}y
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </dd>
-              </div>
-            ))}
+          {skillGroups.map((group) => (
+            <div key={group.category}>
+              <dt className="text-sm uppercase tracking-widest opacity-60 mb-2">
+                {group.label}
+              </dt>
+              <dd>
+                <ul className="flex flex-wrap gap-x-4 gap-y-1">
+                  {group.skills.map((skill) => (
+                    <li key={skill.id} className="text-sm font-mono">
+                      {skill.label}
+                      <span className="opacity-50">
+                        {' · '}
+                        {skill.years}y
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </dd>
+            </div>
+          ))}
         </dl>
       </section>
 

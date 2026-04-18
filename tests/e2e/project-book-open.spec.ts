@@ -68,15 +68,18 @@ test.describe('project book open flow', () => {
       () =>
         ((window as unknown as { dataLayer?: unknown[] }).dataLayer ?? []) as Array<{
           name: string;
-          projectId?: string;
+          panelId?: string;
           dwellMs?: number;
         }>,
     );
     expect(events).toContainEqual(
-      expect.objectContaining({ name: 'panel.opened', projectId: PUBLIC_ID }),
+      expect.objectContaining({
+        name: 'panel.opened',
+        panelId: `project:${PUBLIC_ID}`,
+      }),
     );
     const closed = events.find(
-      (e) => e.name === 'panel.closed' && e.projectId === PUBLIC_ID,
+      (e) => e.name === 'panel.closed' && e.panelId === `project:${PUBLIC_ID}`,
     );
     expect(closed).toBeDefined();
     expect(closed?.dwellMs ?? 0).toBeGreaterThan(0);

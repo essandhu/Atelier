@@ -45,7 +45,10 @@ describe('scene-store', () => {
     expect(s.activePanel).toEqual({ kind: 'project', id: 'atlas' });
     expect(s.openedAt).toBe(1000);
     const events = readDataLayer();
-    expect(events).toContainEqual({ name: 'panel.opened', projectId: 'atlas' });
+    expect(events).toContainEqual({
+      name: 'panel.opened',
+      panelId: 'project:atlas',
+    });
   });
 
   it('open() is a no-op while already opening (rejects re-entrant opens)', () => {
@@ -73,7 +76,7 @@ describe('scene-store', () => {
     const events = readDataLayer();
     expect(events).toContainEqual({
       name: 'panel.closed',
-      projectId: 'atlas',
+      panelId: 'project:atlas',
       dwellMs: 750,
     });
   });
@@ -100,12 +103,40 @@ describe('scene-store', () => {
     expect(s.openedAt).toBeNull();
   });
 
-  it('does not fire panel.opened/closed for non-project panels', () => {
+  it('fires panel.opened / panel.closed for the skills panel', () => {
+    const now = vi.spyOn(performance, 'now');
+    now.mockReturnValueOnce(2000);
     sceneStore.getState().open({ kind: 'skills' });
-    expect(readDataLayer().some((e) => e.name === 'panel.opened')).toBe(false);
+    expect(readDataLayer()).toContainEqual({
+      name: 'panel.opened',
+      panelId: 'skills',
+    });
     sceneStore.getState().markOpened();
+    now.mockReturnValueOnce(2400);
     sceneStore.getState().close();
-    expect(readDataLayer().some((e) => e.name === 'panel.closed')).toBe(false);
+    expect(readDataLayer()).toContainEqual({
+      name: 'panel.closed',
+      panelId: 'skills',
+      dwellMs: 400,
+    });
+  });
+
+  it('fires panel.opened / panel.closed for the globe panel', () => {
+    const now = vi.spyOn(performance, 'now');
+    now.mockReturnValueOnce(5000);
+    sceneStore.getState().open({ kind: 'globe' });
+    expect(readDataLayer()).toContainEqual({
+      name: 'panel.opened',
+      panelId: 'globe',
+    });
+    sceneStore.getState().markOpened();
+    now.mockReturnValueOnce(5250);
+    sceneStore.getState().close();
+    expect(readDataLayer()).toContainEqual({
+      name: 'panel.closed',
+      panelId: 'globe',
+      dwellMs: 250,
+    });
   });
 
   it('setHovered() updates hoveredObject', () => {

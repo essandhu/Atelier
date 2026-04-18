@@ -12,8 +12,11 @@ export type Event =
       reducedMotion: boolean;
       durationMs: number;
     }
-  | { name: 'panel.opened'; projectId: string }
-  | { name: 'panel.closed'; projectId: string; dwellMs: number }
+  // `panelId` is a stable identifier — `project:<slug>` for project panels,
+  // `globe` for the location tag, `skills` for the skills catalog.
+  | { name: 'panel.opened'; panelId: string }
+  | { name: 'panel.closed'; panelId: string; dwellMs: number }
+  | { name: 'globe.spun'; durationMs: number; totalRadians: number }
   | { name: 'webcam.opted_in' }
   | { name: 'webcam.declined' }
   | { name: 'fallback.viewed' };
