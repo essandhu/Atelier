@@ -163,4 +163,54 @@ describe('prefs-store', () => {
     expect(() => prefsStore.getState().setWebcamOptIn(true)).not.toThrow();
     expect(prefsStore.getState().webcamOptIn).toBe(true);
   });
+
+  // --- P10-08: presentationMode slot ---
+
+  describe('presentationMode', () => {
+    it("defaults to 'auto' when no persisted value exists", async () => {
+      installMatchMedia(false);
+      const { prefsStore } = await freshStore();
+      expect(prefsStore.getState().presentationMode).toBe('auto');
+    });
+
+    it("round-trips 'diegetic' / 'panel' / 'auto' through localStorage", async () => {
+      installMatchMedia(false);
+      const { prefsStore } = await freshStore();
+      prefsStore.getState().setPresentationMode('diegetic');
+      expect(prefsStore.getState().presentationMode).toBe('diegetic');
+      expect(localStorage.getItem('atelier:prefs:presentationMode')).toBe(
+        'diegetic',
+      );
+      prefsStore.getState().setPresentationMode('panel');
+      expect(localStorage.getItem('atelier:prefs:presentationMode')).toBe(
+        'panel',
+      );
+      prefsStore.getState().setPresentationMode('auto');
+      expect(localStorage.getItem('atelier:prefs:presentationMode')).toBe(
+        'auto',
+      );
+    });
+
+    it('reads a persisted presentationMode on init', async () => {
+      installMatchMedia(false);
+      localStorage.setItem('atelier:prefs:presentationMode', 'panel');
+      const { prefsStore } = await freshStore();
+      expect(prefsStore.getState().presentationMode).toBe('panel');
+    });
+
+    it("rejects an invalid persisted value and falls back to 'auto'", async () => {
+      installMatchMedia(false);
+      localStorage.setItem('atelier:prefs:presentationMode', 'hologram');
+      const { prefsStore } = await freshStore();
+      expect(prefsStore.getState().presentationMode).toBe('auto');
+    });
+
+    it('setPresentationMode ignores invalid values at runtime', async () => {
+      installMatchMedia(false);
+      const { prefsStore } = await freshStore();
+      // @ts-expect-error — runtime guard under test
+      prefsStore.getState().setPresentationMode('invalid');
+      expect(prefsStore.getState().presentationMode).toBe('auto');
+    });
+  });
 });

@@ -3,9 +3,22 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useGlobalKeyboard } from '@/interaction/keyboard';
 import { sceneStore } from '@/store/scene-store';
+import { prefsStore } from '@/store/prefs-store';
 
-const dispatchKey = (key: string): KeyboardEvent => {
-  const ev = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true });
+interface DispatchOpts {
+  shiftKey?: boolean;
+}
+
+const dispatchKey = (
+  key: string,
+  opts: DispatchOpts = {},
+): KeyboardEvent => {
+  const ev = new KeyboardEvent('keydown', {
+    key,
+    bubbles: true,
+    cancelable: true,
+    shiftKey: opts.shiftKey ?? false,
+  });
   window.dispatchEvent(ev);
   return ev;
 };
@@ -18,6 +31,7 @@ describe('useGlobalKeyboard', () => {
       hoveredObject: null,
       openedAt: null,
     });
+    prefsStore.setState({ presentationMode: 'auto' });
     (window as Window & { dataLayer?: unknown[] }).dataLayer = [];
   });
 
@@ -90,5 +104,108 @@ describe('useGlobalKeyboard', () => {
     unmount();
     dispatchKey('Escape');
     expect(sceneStore.getState().phase).toBe('open');
+  });
+
+  // --- P10-08: Shift+Enter skip-dock + V presentation toggle ---
+
+  describe('Shift+Enter on a dockable hotspot', () => {
+    it("sets prefs.presentationMode = 'panel' then opens the panel", () => {
+      renderHook(() => useGlobalKeyboard());
+      // Simulate focus on a dockable hotspot.
+      const btn = document.createElement('button');
+      btn.setAttribute('data-dockable', 'true');
+      btn.setAttribute('data-panel-kind', 'project');
+      btn.setAttribute('data-panel-id', 'atlas');
+      document.body.appendChild(btn);
+      btn.focus();
+
+      dispatchKey('Enter', { shiftKey: true });
+
+      expect(prefsStore.getState().presentationMode).toBe('panel');
+      expect(sceneStore.getState().activePanel).toEqual({
+        kind: 'project',
+        id: 'atlas',
+      });
+    });
+
+    it('is a no-op when the focused element is not dockable', () => {
+      renderHook(() => useGlobalKeyboard());
+      const btn = document.createElement('button');
+      document.body.appendChild(btn);
+      btn.focus();
+
+      dispatchKey('Enter', { shiftKey: true });
+
+      expect(prefsStore.getState().presentationMode).toBe('auto');
+      expect(sceneStore.getState().phase).toBe('closed');
+    });
+
+    it("reverts presentationMode to 'auto' when the panel closes", () => {
+      renderHook(() => useGlobalKeyboard());
+      const btn = document.createElement('button');
+      btn.setAttribute('data-dockable', 'true');
+      btn.setAttribute('data-panel-kind', 'skills');
+      document.body.appendChild(btn);
+      btn.focus();
+
+      dispatchKey('Enter', { shiftKey: true });
+      expect(prefsStore.getState().presentationMode).toBe('panel');
+
+      // Drive to open, then close.
+      sceneStore.getState().settleDock();
+      sceneStore.getState().startOpening();
+      sceneStore.getState().markOpened();
+      sceneStore.getState().close();
+      sceneStore.getState().markClosed();
+
+      expect(prefsStore.getState().presentationMode).toBe('auto');
+    });
+  });
+
+  describe('V toggles presentationMode while docked/open', () => {
+    const driveProjectToOpen = (id: string): void => {
+      sceneStore.getState().open({ kind: 'project', id });
+      sceneStore.getState().settleDock();
+      sceneStore.getState().startOpening();
+      sceneStore.getState().markOpened();
+    };
+
+    it("cycles auto → diegetic → panel → auto (justification: novel → practical → default)", () => {
+      renderHook(() => useGlobalKeyboard());
+      driveProjectToOpen('a');
+      expect(prefsStore.getState().presentationMode).toBe('auto');
+
+      dispatchKey('v');
+      expect(prefsStore.getState().presentationMode).toBe('diegetic');
+      dispatchKey('v');
+      expect(prefsStore.getState().presentationMode).toBe('panel');
+      dispatchKey('v');
+      expect(prefsStore.getState().presentationMode).toBe('auto');
+    });
+
+    it('also cycles from the docked phase (pre-open)', () => {
+      renderHook(() => useGlobalKeyboard());
+      sceneStore.getState().open({ kind: 'project', id: 'a' });
+      sceneStore.getState().settleDock();
+      expect(sceneStore.getState().phase).toBe('docked');
+      dispatchKey('v');
+      expect(prefsStore.getState().presentationMode).toBe('diegetic');
+    });
+
+    it('is a no-op while closed', () => {
+      renderHook(() => useGlobalKeyboard());
+      dispatchKey('v');
+      expect(prefsStore.getState().presentationMode).toBe('auto');
+    });
+
+    it('is ignored when focus is inside an input (text-editing guard)', () => {
+      renderHook(() => useGlobalKeyboard());
+      driveProjectToOpen('a');
+      const input = document.createElement('input');
+      document.body.appendChild(input);
+      input.focus();
+      dispatchKey('v');
+      expect(prefsStore.getState().presentationMode).toBe('auto');
+    });
   });
 });
