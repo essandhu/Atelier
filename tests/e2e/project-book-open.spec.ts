@@ -106,7 +106,12 @@ test.describe('project book open flow', () => {
         // whitelists `https://*.githubusercontent.com` (the eventual 302
         // target). `WallPiece.tsx` owns the failover; the panel-open flow
         // does not depend on the avatar, so filter the CSP report here.
-        !/Content Security Policy[\s\S]*github\.com/i.test(msg),
+        // Chromium emits the report with the blocked URL *before* the
+        // `Content Security Policy` phrase (`Loading the image 'https://
+        // github.com/…' violates the following Content Security Policy
+        // directive…`), so the regex anchors on both tokens without
+        // assuming order.
+        !(/Content Security Policy/i.test(msg) && /github\.com/i.test(msg)),
     );
     expect(nonResourceErrors).toEqual([]);
   });
