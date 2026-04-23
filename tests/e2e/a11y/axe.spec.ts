@@ -82,6 +82,15 @@ test.describe('Accessibility — root route', () => {
 });
 
 test.describe('Accessibility — panels', () => {
+  // P10-16 wires these panels through `useDockDriver`; under SwiftShader
+  // the dock spring takes ~15 s to settle, so the Enter→panel-visible wait
+  // needs the reduced-motion shortcut to hit the 2D `PanelFrame` path
+  // immediately (see `useDiegeticPresentation`). Axe runs the same
+  // a11y tree in either path.
+  test.beforeEach(async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+  });
+
   test('project panel open — zero serious/critical', async ({ page }) => {
     await dismissIntro(page);
     await page.goto('/?time=evening');
