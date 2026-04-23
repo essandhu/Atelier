@@ -20,11 +20,12 @@ import { Plant } from '@/scene/ambient/Plant';
 import { Pen } from '@/scene/ambient/Pen';
 import { Notes } from '@/scene/ambient/Notes';
 import { RibbonSway } from '@/scene/ambient/RibbonSway';
-import { LiveActivityBook } from '@/scene/live-activity/LiveActivityBook';
+import { HeroBook } from '@/scene/hero-book/HeroBook';
 import { useNewEvents } from '@/scene/live-activity/useNewEvents';
 import { Lightmaps } from '@/scene/lighting/Lightmaps';
 import { RealTimeLights } from '@/scene/lighting/RealTimeLights';
 import { ProjectBookStack } from '@/scene/project-books/ProjectBookStack';
+import { TAB_ORDER } from '@/interaction/tab-order';
 
 // Lazy-load post-processing out of the initial bundle (P9-03). The
 // @react-three/postprocessing + postprocessing libraries contribute
@@ -120,20 +121,25 @@ const ActivePanelRenderer = ({
   return null;
 };
 
+const HERO_PROJECT_ID = 'atelier';
+
 const ResolvedSceneContent = ({
   lampBulbRef,
   pageMeshRef,
-  githubSnapshot,
   projects,
-  newEventIds,
 }: {
   lampBulbRef: React.RefObject<THREE.Mesh | null>;
   pageMeshRef: React.RefObject<THREE.Mesh | null>;
-  githubSnapshot: GithubSnapshot | null;
   projects: Project[];
-  newEventIds: Set<string>;
 }): React.ReactElement => {
   const state = useResolvedTimeOfDay();
+  // Atelier rides the desk-centre HeroBook (P10-09). Filter it out of
+  // the project-book stack so the same project isn't represented by two
+  // interactive objects. If no Atelier project is authored (e.g. a
+  // fork that drops it), the HeroBook still renders as the entry hero
+  // — but falls back to the first project in the manifest for content.
+  const hero = projects.find((p) => p.id === HERO_PROJECT_ID) ?? projects[0];
+  const stackProjects = projects.filter((p) => p.id !== hero?.id);
   return (
     <Lightmaps state={state}>
       <RealTimeLights state={state} />
@@ -142,13 +148,10 @@ const ResolvedSceneContent = ({
       <Bookshelf />
       <WallPiece />
       <Lamp ref={lampBulbRef} />
-      <LiveActivityBook
-        snapshot={githubSnapshot}
-        state={state}
-        newEventIds={newEventIds}
-        pageFlutterRef={pageMeshRef}
-      />
-      <ProjectBookStack projects={projects} />
+      {hero ? (
+        <HeroBook project={hero} tabIndex={TAB_ORDER.liveActivityBook} />
+      ) : null}
+      <ProjectBookStack projects={stackProjects} />
       <SkillsCatalog />
       <Globe />
       <CoffeeCup />
@@ -261,9 +264,7 @@ export const Scene = (props: SceneProps): React.ReactElement => {
           <ResolvedSceneContent
             lampBulbRef={lampBulbRef}
             pageMeshRef={pageMeshRef}
-            githubSnapshot={props.githubSnapshot}
             projects={props.projects}
-            newEventIds={newEventIds}
           />
           {!effectsDisabled && <ResolvedEffects />}
         </Suspense>

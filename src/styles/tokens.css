@@ -29,8 +29,8 @@
 /*
  * Scene-anchor focus indicator (P9-07).
  *
- * Applied as a className on the drei `<Html>` anchor divs used for ProjectBook,
- * Globe, SkillsCatalog, and LiveActivityBook (events) hotspots. The anchor
+ * Applied as a className on the drei `<Html>` anchor divs used for HeroBook,
+ * ProjectBook, Globe, SkillsCatalog, and the events-feed hotspot. The anchor
  * stays invisible under mouse focus (outline: 0 baseline) and reveals a 2 px
  * accent ring on :focus-visible, so keyboard users get a clear target without
  * the scene reading as chrome.

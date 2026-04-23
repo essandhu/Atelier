@@ -22,7 +22,7 @@ test('home page mounts the scene canvas with a working WebGL2 context', async ({
   const canvas = wrapper.locator('canvas');
   await expect(canvas).toBeAttached({ timeout: 10_000 });
 
-  const book = page.getByTestId('live-activity-book');
+  const book = page.getByTestId('hero-book');
   await expect(book).toBeAttached({ timeout: 15_000 });
 
   const hasWebGL = await page.evaluate(() => {

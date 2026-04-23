@@ -38,7 +38,7 @@ const SCANNED_FILES = [
   'src/scene/ambient/Notes.tsx',
   'src/scene/background/Bookshelf.tsx',
   'src/scene/background/WallPiece.tsx',
-  'src/scene/live-activity/LiveActivityBook.tsx',
+  'src/scene/hero-book/HeroBook.tsx',
   'src/scene/project-books/ProjectBook.tsx',
 ];
 

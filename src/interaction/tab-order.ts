@@ -6,8 +6,8 @@
  * `projectBookStart + index` up to `projectBookMax`.
  *
  * Reading order:
- *   skip → intro → webcam → project books → contact card → skills catalog
- *   → globe → pinboard → (eventsFeed reserved)
+ *   skip → intro → webcam → hero book → project books → contact card →
+ *   skills catalog → globe → pinboard → (eventsFeed reserved)
  *
  * Any change here is a user-visible behaviour change — update
  * docs/keyboard-nav.md alongside.
@@ -16,10 +16,12 @@ export const TAB_ORDER = {
   skipToFallback: 1,
   introBeginButton: 2,
   webcamToggle: 3,
-  // RESERVED — the LiveActivityBook book object itself is not a focus stop
-  // (its right-page interactive surface uses the eventsFeed slot below).
-  // Retained through Phase 10 Stage A for e2e migration; will be reclaimed
-  // once P10-09 retires the book component entirely.
+  // Phase 10 Stage A — the hero book (P10-09) replaces the retired
+  // LiveActivityBook at this slot. The hero sits between the intro /
+  // webcam pre-scene stops (1..3) and the project-book stack (100+) so
+  // a keyboard user lands on the entry case study first, then walks the
+  // rest of the desk in order. The numeric slot is preserved from the
+  // legacy reservation for migration stability.
   liveActivityBook: 10,
   projectBookStart: 100,
   // Inclusive upper bound — MAX_BOOKS = projectBookMax - projectBookStart + 1.

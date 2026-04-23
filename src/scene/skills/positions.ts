@@ -3,7 +3,7 @@
  * `src/scene/globe/positions.ts` so ambient objects (coffee cup, notes)
  * can import the anchor and avoid geometry overlap.
  *
- * Positioned between the LiveActivityBook hero (x ≈ -0.05) and the globe
+ * Positioned between the desk-centre HeroBook (x ≈ -0.05) and the globe
  * (x = +0.9), slightly forward of the book so the card faces read from
  * the camera.
  */

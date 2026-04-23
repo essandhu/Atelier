@@ -86,10 +86,13 @@ test.describe('Accessibility — panels', () => {
     await dismissIntro(page);
     await page.goto('/?time=evening');
     await waitForScene(page);
-    await expect(page.getByTestId('project-book-atelier')).toBeAttached({
+    // Atelier is now the desk-centre HeroBook (P10-09); its open-panel a11y
+    // tree is the same `project-panel-atelier` as before because both the
+    // HeroBook and a project book share the ProjectPanel body.
+    await expect(page.getByTestId('hero-book')).toBeAttached({
       timeout: 15_000,
     });
-    await page.getByTestId('project-book-atelier').focus();
+    await page.getByTestId('hero-book').focus();
     await page.keyboard.press('Enter');
     await expect(page.getByTestId('project-panel-atelier')).toBeVisible();
     await runAxe(page, 'project panel open');

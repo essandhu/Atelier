@@ -5,7 +5,10 @@ test.beforeEach(async ({ page }) => {
   await dismissIntro(page);
 });
 
-const PUBLIC_ID = 'atelier';
+// Atelier now lives on the desk-centre HeroBook (P10-09); use the first
+// remaining project-book-stack entry to exercise the same open / scroll /
+// escape / telemetry flow.
+const PUBLIC_ID = 'synapse-oms';
 const MAX_TABS = 15;
 
 const tabUntil = async (page: Page, testId: string): Promise<void> => {

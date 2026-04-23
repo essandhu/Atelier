@@ -78,7 +78,7 @@ test('Tab walks skip → intro Begin → webcam toggle while the intro is visibl
   expect(await focusedTestId(page)).toBe('webcam-toggle');
 });
 
-test('After dismissing intro, Tab walks skip → project books in TAB_ORDER sequence', async ({
+test('After dismissing intro, Tab walks skip → hero book → project books in TAB_ORDER sequence', async ({
   page,
 }) => {
   await dismissIntro(page);
@@ -96,30 +96,28 @@ test('After dismissing intro, Tab walks skip → project books in TAB_ORDER sequ
   await page.keyboard.press('Tab');
   expect(await focusedTestId(page)).toBe('skip-to-fallback');
 
-  // With the intro dismissed, intro-begin and webcam-toggle are unmounted, so
-  // the next positive-tabIndex stop is the first project book (tabIndex=100).
-  // Walk the stack in numerical tabIndex order; this list mirrors
-  // src/content/projects/index.ts.
-  const expectedBookIds = [
-    'atelier',
-    'synapse-oms',
-    'sentinel',
-    'aurora-ui',
-  ] as const;
+  // With the intro dismissed, intro-begin and webcam-toggle are unmounted.
+  // Next positive-tabIndex stop is the HeroBook at TAB_ORDER.liveActivityBook
+  // (= 10), which represents Atelier at the desk centre (P10-09).
+  await page.keyboard.press('Tab');
+  expect(await focusedTestId(page)).toBe('hero-book');
+
+  // Then the remaining project books in the stack, in src/content/projects
+  // manifest order minus the hero (Atelier lives exclusively on the HeroBook).
+  const expectedBookIds = ['synapse-oms', 'sentinel', 'aurora-ui'] as const;
   for (const id of expectedBookIds) {
     await page.keyboard.press('Tab');
     const focused = await focusedTestId(page);
     expect(focused).toBe(`project-book-${id}`);
   }
 
-  // Sanity: stack visibly renders exactly the projects in index.ts (up to the
-  // MAX_BOOKS cap in src/scene/project-books/stack-config.ts — currently 8).
+  // Sanity: stack renders exactly the non-hero projects plus the invisible
+  // `project-book-stack` sentinel <div>.
   const stackCount = await page.getByTestId(/^project-book-/).count();
-  // +1 for the invisible `project-book-stack` sentinel <div>.
   expect(stackCount).toBe(expectedBookIds.length + 1);
 });
 
-test('Tab continues through project books → skills-catalog → globe → events hotspot', async ({
+test('Tab continues hero → project books → skills-catalog → globe → events hotspot', async ({
   page,
 }) => {
   await dismissIntro(page);
@@ -139,11 +137,13 @@ test('Tab continues through project books → skills-catalog → globe → event
 
   await resetFocusToBody(page);
 
-  // Skip → 4 project books (100..103) → skills-catalog (150) → globe (160)
-  // → events-feed hotspot (200).
+  // Skip → hero-book (10) → 3 project books (100..102) → skills-catalog (150)
+  // → globe (160) → events-feed hotspot (200).
   await page.keyboard.press('Tab');
   expect(await focusedTestId(page)).toBe('skip-to-fallback');
-  for (const id of ['atelier', 'synapse-oms', 'sentinel', 'aurora-ui']) {
+  await page.keyboard.press('Tab');
+  expect(await focusedTestId(page)).toBe('hero-book');
+  for (const id of ['synapse-oms', 'sentinel', 'aurora-ui']) {
     await page.keyboard.press('Tab');
     expect(await focusedTestId(page)).toBe(`project-book-${id}`);
   }
@@ -155,7 +155,7 @@ test('Tab continues through project books → skills-catalog → globe → event
   expect(await focusedTestId(page)).toBe('live-activity-hotspot');
 });
 
-test('Focus restoration — project panel Escape returns focus to book', async ({
+test('Focus restoration — hero-book panel Escape returns focus to the hero hotspot', async ({
   page,
 }) => {
   await dismissIntro(page);
@@ -163,15 +163,15 @@ test('Focus restoration — project panel Escape returns focus to book', async (
   await expect(page.getByTestId('scene-canvas').locator('canvas')).toBeAttached(
     { timeout: 15_000 },
   );
-  await expect(page.getByTestId('project-book-atelier')).toBeAttached({
+  await expect(page.getByTestId('hero-book')).toBeAttached({
     timeout: 15_000,
   });
 
   await resetFocusToBody(page);
-  // Tab to the first book.
+  // Tab to the hero book (first positive-tabIndex stop after the skip link).
   await page.keyboard.press('Tab'); // skip
-  await page.keyboard.press('Tab'); // book 0 = atelier
-  expect(await focusedTestId(page)).toBe('project-book-atelier');
+  await page.keyboard.press('Tab'); // hero = atelier
+  expect(await focusedTestId(page)).toBe('hero-book');
 
   await page.keyboard.press('Enter');
   await expect(page.getByTestId('project-panel-atelier')).toBeVisible();
@@ -179,10 +179,8 @@ test('Focus restoration — project panel Escape returns focus to book', async (
   await page.keyboard.press('Escape');
   await expect(page.getByTestId('project-panel-atelier')).not.toBeVisible();
 
-  // ProjectBook.tsx restores focus on `phase === 'closed'` via anchorRef.focus().
-  await expect
-    .poll(() => focusedTestId(page))
-    .toBe('project-book-atelier');
+  // HeroBook restores focus on `phase === 'closed'` via anchorRef.focus().
+  await expect.poll(() => focusedTestId(page)).toBe('hero-book');
 });
 
 test('Focus restoration — skills panel Escape returns focus to catalog hotspot', async ({
@@ -273,15 +271,15 @@ test('Focus-visible renders a visible outline on the focused scene anchor', asyn
   await expect(page.getByTestId('scene-canvas').locator('canvas')).toBeAttached(
     { timeout: 15_000 },
   );
-  await expect(page.getByTestId('project-book-atelier')).toBeAttached({
+  await expect(page.getByTestId('hero-book')).toBeAttached({
     timeout: 15_000,
   });
 
   await resetFocusToBody(page);
   // Keyboard-Tab triggers :focus-visible; pointer/script focus does not.
   await page.keyboard.press('Tab'); // skip
-  await page.keyboard.press('Tab'); // first book
-  expect(await focusedTestId(page)).toBe('project-book-atelier');
+  await page.keyboard.press('Tab'); // hero-book (first scene stop)
+  expect(await focusedTestId(page)).toBe('hero-book');
 
   // `.scene-focus-ring:focus-visible` renders `outline: 2px solid var(--accent)`
   // *on a visible element*. The original Phase-9 assertion checked only
