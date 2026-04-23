@@ -52,6 +52,8 @@ export const LiveRegion = ({ projects }: LiveRegionProps): React.ReactElement =>
           return phase === 'opening'
             ? 'Recent GitHub activity opened'
             : 'Recent GitHub activity closed';
+        case 'contact':
+          return phase === 'opening' ? 'Contact opened' : 'Contact closed';
       }
     };
 

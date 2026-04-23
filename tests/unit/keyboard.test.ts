@@ -32,7 +32,15 @@ describe('useGlobalKeyboard', () => {
     expect(closeSpy).not.toHaveBeenCalled();
   });
 
-  it('Escape calls close() while phase === opening', () => {
+  // Helper: drive a project (dockable) panel all the way to `open`.
+  const driveProjectToOpen = (id: string): void => {
+    sceneStore.getState().open({ kind: 'project', id });
+    sceneStore.getState().settleDock();
+    sceneStore.getState().startOpening();
+    sceneStore.getState().markOpened();
+  };
+
+  it('Escape calls close() while phase === docking (before settle)', () => {
     renderHook(() => useGlobalKeyboard());
     sceneStore.getState().open({ kind: 'project', id: 'a' });
     dispatchKey('Escape');
@@ -41,16 +49,14 @@ describe('useGlobalKeyboard', () => {
 
   it('Escape calls close() while phase === open', () => {
     renderHook(() => useGlobalKeyboard());
-    sceneStore.getState().open({ kind: 'project', id: 'a' });
-    sceneStore.getState().markOpened();
+    driveProjectToOpen('a');
     dispatchKey('Escape');
     expect(sceneStore.getState().phase).toBe('closing');
   });
 
   it('Escape is a no-op while phase === closing', () => {
     renderHook(() => useGlobalKeyboard());
-    sceneStore.getState().open({ kind: 'project', id: 'a' });
-    sceneStore.getState().markOpened();
+    driveProjectToOpen('a');
     sceneStore.getState().close();
     // snapshot events count — close() during closing must not re-fire telemetry
     const before = (window as Window & { dataLayer?: unknown[] }).dataLayer?.length ?? 0;
@@ -62,8 +68,7 @@ describe('useGlobalKeyboard', () => {
 
   it('non-Escape keys are no-ops even when the panel is open', () => {
     renderHook(() => useGlobalKeyboard());
-    sceneStore.getState().open({ kind: 'project', id: 'a' });
-    sceneStore.getState().markOpened();
+    driveProjectToOpen('a');
     dispatchKey('Enter');
     dispatchKey('a');
     expect(sceneStore.getState().phase).toBe('open');
@@ -74,16 +79,14 @@ describe('useGlobalKeyboard', () => {
     const input = document.createElement('input');
     document.body.appendChild(input);
     input.focus();
-    sceneStore.getState().open({ kind: 'project', id: 'a' });
-    sceneStore.getState().markOpened();
+    driveProjectToOpen('a');
     dispatchKey('Escape');
     expect(sceneStore.getState().phase).toBe('open');
   });
 
   it('detaches the listener on unmount', () => {
     const { unmount } = renderHook(() => useGlobalKeyboard());
-    sceneStore.getState().open({ kind: 'project', id: 'a' });
-    sceneStore.getState().markOpened();
+    driveProjectToOpen('a');
     unmount();
     dispatchKey('Escape');
     expect(sceneStore.getState().phase).toBe('open');

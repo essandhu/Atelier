@@ -17,7 +17,11 @@ const onKeyDown = (event: KeyboardEvent): void => {
   if (event.key !== 'Escape') return;
   if (isTextEditingFocus()) return;
   const { phase } = sceneStore.getState();
-  if (phase !== 'open' && phase !== 'opening') return;
+  // Escape is valid from any live phase — interrupting a dock mid-path is
+  // supported per §4.3 ("Close from `docking`: reverse dock"). `close()` itself
+  // no-ops on `closed` / `closing`, so the guard here just avoids calling it
+  // when there's nothing to close.
+  if (phase === 'closed' || phase === 'closing') return;
   sceneStore.getState().close();
 };
 

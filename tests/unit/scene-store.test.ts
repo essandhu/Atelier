@@ -37,11 +37,12 @@ describe('scene-store', () => {
     expect(s.openedAt).toBeNull();
   });
 
-  it('open() moves closed → opening and fires panel.opened for a project', () => {
+  it('open(project) enters docking (dockable kind) and fires panel.opened', () => {
     vi.spyOn(performance, 'now').mockReturnValue(1000);
     sceneStore.getState().open({ kind: 'project', id: 'atlas' });
     const s = sceneStore.getState();
-    expect(s.phase).toBe('opening');
+    // Dockable kinds route to `docking` first (§4.3).
+    expect(s.phase).toBe('docking');
     expect(s.activePanel).toEqual({ kind: 'project', id: 'atlas' });
     expect(s.openedAt).toBe(1000);
     const events = readDataLayer();
@@ -61,14 +62,18 @@ describe('scene-store', () => {
 
   it('markOpened() advances opening → open', () => {
     sceneStore.getState().open({ kind: 'project', id: 'a' });
+    sceneStore.getState().settleDock();
+    sceneStore.getState().startOpening();
     sceneStore.getState().markOpened();
     expect(sceneStore.getState().phase).toBe('open');
   });
 
-  it('close() moves open → closing and emits panel.closed with dwellMs', () => {
+  it('close() from open moves → closing and emits panel.closed with dwellMs', () => {
     const now = vi.spyOn(performance, 'now');
     now.mockReturnValueOnce(1000); // open()
     sceneStore.getState().open({ kind: 'project', id: 'atlas' });
+    sceneStore.getState().settleDock();
+    sceneStore.getState().startOpening();
     sceneStore.getState().markOpened();
     now.mockReturnValueOnce(1750); // close()
     sceneStore.getState().close();
@@ -85,6 +90,8 @@ describe('scene-store', () => {
     sceneStore.getState().close();
     expect(sceneStore.getState().phase).toBe('closed');
     sceneStore.getState().open({ kind: 'project', id: 'a' });
+    sceneStore.getState().settleDock();
+    sceneStore.getState().startOpening();
     sceneStore.getState().markOpened();
     sceneStore.getState().close();
     const before = readDataLayer().length;
@@ -94,6 +101,8 @@ describe('scene-store', () => {
 
   it('markClosed() clears activePanel + openedAt and moves closing → closed', () => {
     sceneStore.getState().open({ kind: 'project', id: 'atlas' });
+    sceneStore.getState().settleDock();
+    sceneStore.getState().startOpening();
     sceneStore.getState().markOpened();
     sceneStore.getState().close();
     sceneStore.getState().markClosed();
@@ -111,6 +120,8 @@ describe('scene-store', () => {
       name: 'panel.opened',
       panelId: 'skills',
     });
+    sceneStore.getState().settleDock();
+    sceneStore.getState().startOpening();
     sceneStore.getState().markOpened();
     now.mockReturnValueOnce(2400);
     sceneStore.getState().close();
@@ -144,5 +155,173 @@ describe('scene-store', () => {
     expect(sceneStore.getState().hoveredObject).toBe('atlas');
     sceneStore.getState().setHovered(null);
     expect(sceneStore.getState().hoveredObject).toBeNull();
+  });
+
+  // --- P10-04: docking/docked phases + contact panel kind ---
+
+  describe('dockable panels (project / skills / contact)', () => {
+    it('open(project) routes through docking → docked → opening → open', () => {
+      const now = vi.spyOn(performance, 'now');
+      now.mockReturnValueOnce(1000);
+      sceneStore.getState().open({ kind: 'project', id: 'atlas' });
+      expect(sceneStore.getState().phase).toBe('docking');
+      expect(sceneStore.getState().activePanel).toEqual({
+        kind: 'project',
+        id: 'atlas',
+      });
+      expect(sceneStore.getState().openedAt).toBe(1000);
+      expect(readDataLayer()).toContainEqual({
+        name: 'panel.opened',
+        panelId: 'project:atlas',
+      });
+
+      sceneStore.getState().settleDock();
+      expect(sceneStore.getState().phase).toBe('docked');
+
+      sceneStore.getState().startOpening();
+      expect(sceneStore.getState().phase).toBe('opening');
+
+      sceneStore.getState().markOpened();
+      expect(sceneStore.getState().phase).toBe('open');
+    });
+
+    it('open(skills) also routes through the dockable path', () => {
+      sceneStore.getState().open({ kind: 'skills' });
+      expect(sceneStore.getState().phase).toBe('docking');
+      sceneStore.getState().settleDock();
+      expect(sceneStore.getState().phase).toBe('docked');
+    });
+
+    it('open(contact) also routes through the dockable path', () => {
+      sceneStore.getState().open({ kind: 'contact' });
+      expect(sceneStore.getState().phase).toBe('docking');
+      expect(sceneStore.getState().activePanel).toEqual({ kind: 'contact' });
+      expect(readDataLayer()).toContainEqual({
+        name: 'panel.opened',
+        panelId: 'contact',
+      });
+    });
+
+    it('close() from docking moves to closing → closed and emits panel.closed', () => {
+      const now = vi.spyOn(performance, 'now');
+      now.mockReturnValueOnce(1000); // open()
+      sceneStore.getState().open({ kind: 'project', id: 'atlas' });
+      expect(sceneStore.getState().phase).toBe('docking');
+      now.mockReturnValueOnce(1250); // close()
+      sceneStore.getState().close();
+      expect(sceneStore.getState().phase).toBe('closing');
+      expect(readDataLayer()).toContainEqual({
+        name: 'panel.closed',
+        panelId: 'project:atlas',
+        dwellMs: 250,
+      });
+      sceneStore.getState().markClosed();
+      expect(sceneStore.getState().phase).toBe('closed');
+      expect(sceneStore.getState().activePanel).toBeNull();
+      expect(sceneStore.getState().openedAt).toBeNull();
+    });
+
+    it('close() from docked moves to closing → closed and emits panel.closed', () => {
+      const now = vi.spyOn(performance, 'now');
+      now.mockReturnValueOnce(2000); // open()
+      sceneStore.getState().open({ kind: 'skills' });
+      sceneStore.getState().settleDock();
+      expect(sceneStore.getState().phase).toBe('docked');
+      now.mockReturnValueOnce(2500); // close()
+      sceneStore.getState().close();
+      expect(sceneStore.getState().phase).toBe('closing');
+      expect(readDataLayer()).toContainEqual({
+        name: 'panel.closed',
+        panelId: 'skills',
+        dwellMs: 500,
+      });
+      sceneStore.getState().markClosed();
+      expect(sceneStore.getState().phase).toBe('closed');
+    });
+
+    it('settleDock() is a no-op outside docking phase', () => {
+      sceneStore.getState().settleDock();
+      expect(sceneStore.getState().phase).toBe('closed');
+
+      sceneStore.getState().open({ kind: 'globe' }); // non-dockable → opening
+      sceneStore.getState().settleDock();
+      expect(sceneStore.getState().phase).toBe('opening');
+    });
+
+    it('startOpening() is a no-op outside docked phase', () => {
+      sceneStore.getState().startOpening();
+      expect(sceneStore.getState().phase).toBe('closed');
+
+      sceneStore.getState().open({ kind: 'project', id: 'a' });
+      // Still in docking — startOpening should not advance
+      sceneStore.getState().startOpening();
+      expect(sceneStore.getState().phase).toBe('docking');
+    });
+  });
+
+  describe('non-dockable panels (globe / events) preserve the short path', () => {
+    it('open(globe) goes closed → opening directly', () => {
+      sceneStore.getState().open({ kind: 'globe' });
+      expect(sceneStore.getState().phase).toBe('opening');
+      sceneStore.getState().markOpened();
+      expect(sceneStore.getState().phase).toBe('open');
+    });
+
+    it('open(events) goes closed → opening directly', () => {
+      sceneStore.getState().open({ kind: 'events' });
+      expect(sceneStore.getState().phase).toBe('opening');
+      expect(readDataLayer()).toContainEqual({
+        name: 'panel.opened',
+        panelId: 'events',
+      });
+      sceneStore.getState().markOpened();
+      expect(sceneStore.getState().phase).toBe('open');
+    });
+  });
+
+  describe('at-most-one-open invariant', () => {
+    it.each(['docking', 'docked', 'opening', 'open', 'closing'] as const)(
+      'rejects open() while phase is %s',
+      (targetPhase) => {
+        sceneStore.getState().open({ kind: 'project', id: 'a' });
+        if (targetPhase === 'docking') {
+          // already here
+        } else if (targetPhase === 'docked') {
+          sceneStore.getState().settleDock();
+        } else if (targetPhase === 'opening') {
+          sceneStore.getState().settleDock();
+          sceneStore.getState().startOpening();
+        } else if (targetPhase === 'open') {
+          sceneStore.getState().settleDock();
+          sceneStore.getState().startOpening();
+          sceneStore.getState().markOpened();
+        } else if (targetPhase === 'closing') {
+          sceneStore.getState().settleDock();
+          sceneStore.getState().startOpening();
+          sceneStore.getState().markOpened();
+          sceneStore.getState().close();
+        }
+        expect(sceneStore.getState().phase).toBe(targetPhase);
+
+        const beforeOpens = readDataLayer().filter(
+          (e) => e.name === 'panel.opened',
+        ).length;
+        sceneStore.getState().open({ kind: 'project', id: 'b' });
+        expect(sceneStore.getState().activePanel).toEqual({
+          kind: 'project',
+          id: 'a',
+        });
+        expect(
+          readDataLayer().filter((e) => e.name === 'panel.opened').length,
+        ).toBe(beforeOpens);
+      },
+    );
+  });
+
+  describe('panelIdOf', () => {
+    it('returns "contact" for the contact kind', async () => {
+      const { panelIdOf } = await import('@/store/scene-store');
+      expect(panelIdOf({ kind: 'contact' })).toBe('contact');
+    });
   });
 });
