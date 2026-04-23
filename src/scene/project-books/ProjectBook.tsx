@@ -8,6 +8,10 @@ import type { Project } from '@/content/projects/schemas';
 import { sceneStore, useSceneStore } from '@/store/scene-store';
 import { usePrefsStore } from '@/store/prefs-store';
 import { createPointerHandlers } from '@/interaction/pointer';
+import { useDockDriver } from '@/interaction/camera-dock/driver';
+import { POSES } from '@/interaction/camera-dock/poses';
+import { useDiegeticPresentation } from '@/interaction/camera-dock/presentation';
+import { ProjectPanel } from '@/ui/panels/ProjectPanel';
 import {
   spineDimensions,
   spineMaterialParams,
@@ -33,6 +37,12 @@ export const ProjectBook = ({
   position,
   tabIndex,
 }: ProjectBookProps): React.ReactElement => {
+  // `dockRef` is the outermost group — driven by `useDockDriver` when this
+  // book owns the active panel. `outerRef` is the book's inner open/hover
+  // motion group: separating the two lets the dock translate compose with
+  // the book's own pull + face-rotate without either mutation fighting
+  // the other for the same transform slot.
+  const dockRef = useRef<THREE.Group>(null);
   const outerRef = useRef<THREE.Group>(null);
   const coverPivotRef = useRef<THREE.Group>(null);
   const spineMatRef = useRef<THREE.MeshStandardMaterial>(null);
@@ -61,8 +71,29 @@ export const ProjectBook = ({
   // toggles (subscribeToReducedMotion bridges matchMedia → store) and matches
   // the single-source-of-truth pattern from Phase 5 Deviation 2.
   const reducedMotion = usePrefsStore((s) => s.reducedMotion);
+  const presentation = useDiegeticPresentation();
   const isHovered = hoveredId === project.id;
   const isActive = activeId === project.id;
+
+  // Dock driver on the outermost group — only the active book moves;
+  // passive books receive the driver as a no-op (phase stays `closed`
+  // for them, which freezes `step()` inside the driver). Home = the
+  // passed-in `position` (stack seat), target = the shared project-book
+  // dock pose.
+  useDockDriver(
+    dockRef,
+    POSES.projectBook,
+    { position, rotation: [0, 0, 0] },
+    reducedMotion,
+  );
+
+  // Diegetic body gate. Mount the `<Html transform>` on the right page
+  // once the dock has settled AND the book has flipped open enough for
+  // the page to face the camera (Phase 4 `scene3d` 800 ms cover flip).
+  const showDiegeticBody =
+    isActive &&
+    presentation === 'diegetic' &&
+    (phase === 'docked' || phase === 'opening' || phase === 'open');
 
   const handlers = useMemo(
     () => createPointerHandlers(project.id),
@@ -113,12 +144,15 @@ export const ProjectBook = ({
       }
     }
 
+    // `outerRef` is now an inner child of the dock-driven group; its
+    // writes are relative to the outer `dockRef`. Hover + pull-Z compose
+    // additively with the dock translate.
     const outer = outerRef.current;
     if (outer) {
       outer.position.set(
-        position[0],
-        position[1] + HOVER_LIFT * a.hover,
-        position[2] + PULL_Z * a.open,
+        0,
+        HOVER_LIFT * a.hover,
+        PULL_Z * a.open,
       );
       const rotate = reducedMotion ? 0 : FACE_ROTATE * a.open;
       outer.rotation.y = rotate;
@@ -146,47 +180,79 @@ export const ProjectBook = ({
   const halfD = dims.depth / 2;
 
   return (
-    <group ref={outerRef} position={position}>
-      <group {...handlers}>
-        {/* Pages block (thickest interior). */}
-        <mesh castShadow receiveShadow>
-          <boxGeometry
-            args={[dims.width * 0.9, dims.height * 0.98, dims.depth * 0.95]}
-          />
-          <meshStandardMaterial color="#f2ead8" roughness={0.95} />
-        </mesh>
-
-        {/* Cover pivot rotates around the spine hinge at +X edge of the book. */}
-        <group ref={coverPivotRef} position={[halfW, 0, 0]}>
-          <mesh
-            castShadow
-            receiveShadow
-            position={[-halfW, 0, 0]}
-          >
-            <boxGeometry args={[dims.width, dims.height, dims.depth]} />
-            <meshStandardMaterial
-              color={project.spine.color}
-              roughness={baseSpineParams.roughness}
-              metalness={baseSpineParams.metalness}
-            />
-          </mesh>
-          {/* Spine stripe on the -Z face of the cover. */}
-          <mesh
-            position={[-halfW, 0, -halfD + 0.001]}
-            castShadow
-          >
+    <group ref={dockRef} position={position}>
+      <group ref={outerRef}>
+        <group {...handlers}>
+          {/* Pages block (thickest interior). */}
+          <mesh castShadow receiveShadow>
             <boxGeometry
-              args={[dims.width * 1.02, dims.height, 0.002]}
+              args={[dims.width * 0.9, dims.height * 0.98, dims.depth * 0.95]}
             />
-            <meshStandardMaterial
-              ref={spineMatRef}
-              color={project.spine.color}
-              roughness={baseSpineParams.roughness}
-              metalness={baseSpineParams.metalness}
-              emissive={baseSpineParams.emissive}
-              emissiveIntensity={baseSpineParams.emissiveIntensity}
-            />
+            <meshStandardMaterial color="#f2ead8" roughness={0.95} />
           </mesh>
+
+          {/* Cover pivot rotates around the spine hinge at +X edge of the book. */}
+          <group ref={coverPivotRef} position={[halfW, 0, 0]}>
+            <mesh
+              castShadow
+              receiveShadow
+              position={[-halfW, 0, 0]}
+            >
+              <boxGeometry args={[dims.width, dims.height, dims.depth]} />
+              <meshStandardMaterial
+                color={project.spine.color}
+                roughness={baseSpineParams.roughness}
+                metalness={baseSpineParams.metalness}
+              />
+            </mesh>
+            {/* Spine stripe on the -Z face of the cover. */}
+            <mesh
+              position={[-halfW, 0, -halfD + 0.001]}
+              castShadow
+            >
+              <boxGeometry
+                args={[dims.width * 1.02, dims.height, 0.002]}
+              />
+              <meshStandardMaterial
+                ref={spineMatRef}
+                color={project.spine.color}
+                roughness={baseSpineParams.roughness}
+                metalness={baseSpineParams.metalness}
+                emissive={baseSpineParams.emissive}
+                emissiveIntensity={baseSpineParams.emissiveIntensity}
+              />
+            </mesh>
+          </group>
+        </group>
+
+        {/* Named right-page surface group. Origin sits above the pages
+            block on the local +Y axis — the page that faces the camera
+            after the cover flips. Matches `POSES.projectBook.surfaceNode`. */}
+        <group
+          name="projectBook:page"
+          position={[0, dims.height / 2 + 0.0005, 0]}
+        >
+          {showDiegeticBody ? (
+            <group
+              rotation={[-Math.PI / 2, 0, 0]}
+              scale={dims.width / POSES.projectBook.domSize.w}
+            >
+              <Html
+                transform
+                occlude={false}
+                pointerEvents="auto"
+                style={{
+                  width: `${POSES.projectBook.domSize.w}px`,
+                  height: `${POSES.projectBook.domSize.h}px`,
+                }}
+              >
+                <ProjectPanel
+                  project={project}
+                  onClose={() => sceneStore.getState().close()}
+                />
+              </Html>
+            </group>
+          ) : null}
         </group>
       </group>
 

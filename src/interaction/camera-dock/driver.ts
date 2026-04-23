@@ -254,9 +254,14 @@ export const useDockDriver = (
     obj.rotation.set(next.rotation[0], next.rotation[1], next.rotation[2]);
 
     // Settle dispatch — only in the `docking` phase, and only on the
-    // transition frame (edge-trigger via `settled` flip).
+    // transition frame (edge-trigger via `settled` flip). `settleDock()`
+    // advances docking → docked; we immediately chain into `startOpening`
+    // so the `<Html transform>` surface can mount in the `opening` phase
+    // without a stuck-at-docked hole in the phase machine. The PanelFrame
+    // / panel body owns the `opening → open` handoff via its own timer.
     if (next.settled && !prev.settled && phase === 'docking') {
       sceneStore.getState().settleDock();
+      sceneStore.getState().startOpening();
     }
   });
 };

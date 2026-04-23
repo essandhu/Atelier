@@ -11,7 +11,10 @@ import { Window } from '@/scene/Window';
 import { Globe } from '@/scene/Globe';
 import { SkillsCatalog } from '@/scene/SkillsCatalog';
 import { Bookshelf } from '@/scene/background/Bookshelf';
+import { Pinboard } from '@/scene/background/Pinboard';
 import { WallPiece } from '@/scene/background/WallPiece';
+import { deriveActivityStats } from '@/data/github/transform';
+import { useDiegeticPresentation } from '@/interaction/camera-dock/presentation';
 import { DustMotes } from '@/scene/ambient/DustMotes';
 import { LampBreathe } from '@/scene/ambient/LampBreathe';
 import { PageFlutter } from '@/scene/ambient/PageFlutter';
@@ -54,6 +57,7 @@ import { ProjectPanel } from '@/ui/panels/ProjectPanel';
 import { GlobePanel } from '@/ui/panels/GlobePanel';
 import { SkillsCatalogPanel } from '@/ui/panels/SkillsCatalogPanel';
 import { EventsFeedPanel } from '@/ui/panels/EventsFeedPanel';
+import { ContactPanel } from '@/ui/panels/ContactPanel';
 import {
   timeOfDayStore,
   useResolvedTimeOfDay,
@@ -85,18 +89,36 @@ export interface SceneProps {
 
 const SURFACE_COLOR = '#0f0c0a';
 
+// Dockable kinds (matches scene-store `isDockableKind`). When the visitor is
+// in diegetic presentation mode these render as `<Html transform>` surfaces
+// on the dockable object itself and the 2D panel must stay un-mounted — the
+// dual-path invariant is "exactly one DOM instance per open panel".
+const DOCKABLE_KINDS: ReadonlySet<string> = new Set([
+  'project',
+  'skills',
+  'contact',
+]);
+
 const ActivePanelRenderer = ({
   projects,
+  profile,
   githubSnapshot,
   newEventIds,
 }: {
   projects: Project[];
+  profile: Profile;
   githubSnapshot: GithubSnapshot | null;
   newEventIds: Set<string>;
 }): React.ReactElement | null => {
   const activePanel = useSceneStore((s) => s.activePanel);
   const phase = useSceneStore((s) => s.phase);
+  const presentation = useDiegeticPresentation();
   if (!activePanel || phase === 'closed') return null;
+  // Double-mount guard: skip the 2D panel when the dockable surface owns the
+  // DOM. Non-dockable kinds (globe, events) always render 2D regardless.
+  if (presentation === 'diegetic' && DOCKABLE_KINDS.has(activePanel.kind)) {
+    return null;
+  }
   const close = () => sceneStore.getState().close();
   if (activePanel.kind === 'project') {
     const project = projects.find((p) => p.id === activePanel.id);
@@ -118,6 +140,9 @@ const ActivePanelRenderer = ({
       />
     );
   }
+  if (activePanel.kind === 'contact') {
+    return <ContactPanel profile={profile} onClose={close} />;
+  }
   return null;
 };
 
@@ -128,11 +153,13 @@ const ResolvedSceneContent = ({
   pageMeshRef,
   profile,
   projects,
+  githubSnapshot,
 }: {
   lampBulbRef: React.RefObject<THREE.Mesh | null>;
   pageMeshRef: React.RefObject<THREE.Mesh | null>;
   profile: Profile;
   projects: Project[];
+  githubSnapshot: GithubSnapshot | null;
 }): React.ReactElement => {
   const state = useResolvedTimeOfDay();
   // Atelier rides the desk-centre HeroBook (P10-09). Filter it out of
@@ -142,13 +169,28 @@ const ResolvedSceneContent = ({
   // — but falls back to the first project in the manifest for content.
   const hero = projects.find((p) => p.id === HERO_PROJECT_ID) ?? projects[0];
   const stackProjects = projects.filter((p) => p.id !== hero?.id);
+  // Derive the pinboard stats from the GitHub snapshot once per snapshot
+  // change (pure transform, no I/O). The Pinboard hotspot + cards only
+  // mount when a snapshot is available — on the offline/error path the
+  // wall shows the framed WallPiece alone.
+  const activityStats = useMemo(
+    () => (githubSnapshot ? deriveActivityStats(githubSnapshot) : null),
+    [githubSnapshot],
+  );
   return (
     <Lightmaps state={state}>
       <RealTimeLights state={state} />
       <Desk />
       <Window state={state} />
       <Bookshelf />
-      <WallPiece />
+      <WallPiece avatarUrl={githubSnapshot?.avatarUrl} />
+      {githubSnapshot && activityStats ? (
+        <Pinboard
+          stats={activityStats}
+          contributions={githubSnapshot.contributions}
+          state={state}
+        />
+      ) : null}
       <Lamp ref={lampBulbRef} />
       {hero ? (
         <HeroBook project={hero} tabIndex={TAB_ORDER.liveActivityBook} />
@@ -268,6 +310,7 @@ export const Scene = (props: SceneProps): React.ReactElement => {
             pageMeshRef={pageMeshRef}
             profile={props.profile}
             projects={props.projects}
+            githubSnapshot={props.githubSnapshot}
           />
           {!effectsDisabled && <ResolvedEffects />}
         </Suspense>
@@ -301,6 +344,7 @@ export const Scene = (props: SceneProps): React.ReactElement => {
       <LiveRegion projects={props.projects} />
       <ActivePanelRenderer
         projects={props.projects}
+        profile={props.profile}
         githubSnapshot={props.githubSnapshot}
         newEventIds={newEventIds}
       />

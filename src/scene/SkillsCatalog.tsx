@@ -5,7 +5,13 @@ import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { sceneStore, useSceneStore } from '@/store/scene-store';
+import { usePrefsStore } from '@/store/prefs-store';
 import { TAB_ORDER } from '@/interaction/tab-order';
+import { useDockDriver } from '@/interaction/camera-dock/driver';
+import { POSES } from '@/interaction/camera-dock/poses';
+import { useDiegeticPresentation } from '@/interaction/camera-dock/presentation';
+import { useDockPhaseTimers } from '@/interaction/camera-dock/phase-timers';
+import { SkillsCatalogPanel } from '@/ui/panels/SkillsCatalogPanel';
 import {
   SKILLS_CATALOG_POSITION,
   SKILLS_CATALOG_SIZE,
@@ -19,7 +25,13 @@ const HOVER_GLOW = 0.1;
 const CARD_ROWS = 4;
 
 export const SkillsCatalog = (): React.ReactElement => {
+  // Outer group — driven by `useDockDriver`. Position/rotation are the
+  // at-rest anchor or the shared "drawer-extended" pose depending on
+  // the scene-store phase.
   const groupRef = useRef<THREE.Group>(null);
+  // Inner group — owns the drawer-slide hover animation. Kept separate
+  // from the dock-driven outer group so the two transforms compose cleanly.
+  const hoverGroupRef = useRef<THREE.Group>(null);
   const cardMatRef = useRef<THREE.MeshStandardMaterial>(null);
   const anchorRef = useRef<HTMLDivElement>(null);
   const hoverRef = useRef(0);
@@ -31,22 +43,48 @@ export const SkillsCatalog = (): React.ReactElement => {
   // through drei `<Html>`, so we drive it explicitly from the phase machine.
   const phase = useSceneStore((s) => s.phase);
   const activePanel = useSceneStore((s) => s.activePanel);
+  const reducedMotion = usePrefsStore((s) => s.reducedMotion);
+  const presentation = useDiegeticPresentation();
+  const isSkillsActive = activePanel?.kind === 'skills';
   const wasActiveRef = useRef(false);
   useEffect(() => {
-    const isSkillsActive = activePanel?.kind === 'skills';
-    if (isSkillsActive && phase === 'opening') {
+    if (isSkillsActive && (phase === 'docked' || phase === 'opening')) {
       wasActiveRef.current = true;
     }
     if (phase === 'closed' && wasActiveRef.current) {
       anchorRef.current?.focus();
       wasActiveRef.current = false;
     }
-  }, [phase, activePanel]);
+  }, [phase, isSkillsActive]);
+
+  // Dock driver on the outer group. Home = the at-rest desk anchor, target
+  // = the shared `POSES.skillsCatalog` "drawer-extended" composition.
+  useDockDriver(
+    groupRef,
+    POSES.skillsCatalog,
+    { position: SKILLS_CATALOG_POSITION, rotation: [0, 0, 0] },
+    reducedMotion,
+  );
+
+  // Diegetic body gate. The drawer-slide hover animation is purely
+  // cosmetic and runs regardless — only the DOM body mounts here.
+  const showDiegeticBody =
+    isSkillsActive &&
+    presentation === 'diegetic' &&
+    (phase === 'docked' || phase === 'opening' || phase === 'open');
+
+  // Diegetic path has no PanelFrame to drive `opening → open` /
+  // `closing → closed` timers — this hook supplies them when the
+  // catalog owns the active diegetic panel.
+  useDockPhaseTimers(isSkillsActive && presentation === 'diegetic');
 
   useFrame(() => {
-    const group = groupRef.current;
-    if (!group) return;
-    group.position.y = SKILLS_CATALOG_POSITION[1] + HOVER_LIFT * hoverRef.current;
+    // Hover lift lives on the inner group so it composes with the dock
+    // driver's outer-group writes without fighting for the same slot.
+    const hoverGroup = hoverGroupRef.current;
+    if (hoverGroup) {
+      hoverGroup.position.y = HOVER_LIFT * hoverRef.current;
+    }
     const mat = cardMatRef.current;
     if (mat) {
       mat.emissiveIntensity = HOVER_GLOW * hoverRef.current;
@@ -80,42 +118,70 @@ export const SkillsCatalog = (): React.ReactElement => {
   const cardDepth = 0.001;
 
   return (
-    <group ref={groupRef} position={SKILLS_CATALOG_POSITION}>
-      <group
-        onPointerOver={onPointerOver}
-        onPointerOut={onPointerOut}
-        onClick={onClick}
-      >
-        {/* Wooden drawer housing */}
-        <mesh castShadow receiveShadow>
-          <boxGeometry args={[w, h, d]} />
-          <meshStandardMaterial
-            color={BOX_COLOR}
-            roughness={0.75}
-            metalness={0.05}
-          />
-        </mesh>
+    <group ref={groupRef} position={SKILLS_CATALOG_POSITION} name="skillsCatalog">
+      <group ref={hoverGroupRef}>
+        <group
+          onPointerOver={onPointerOver}
+          onPointerOut={onPointerOut}
+          onClick={onClick}
+        >
+          {/* Wooden drawer housing */}
+          <mesh castShadow receiveShadow>
+            <boxGeometry args={[w, h, d]} />
+            <meshStandardMaterial
+              color={BOX_COLOR}
+              roughness={0.75}
+              metalness={0.05}
+            />
+          </mesh>
 
-        {/* Card faces, inset into the +Z face of the drawer */}
-        {Array.from({ length: CARD_ROWS }).map((_, i) => {
-          const y = h / 2 - rowSpacing * (i + 1);
-          return (
-            <mesh
-              key={i}
-              position={[0, y, d / 2 + 0.0005]}
-              receiveShadow
-            >
-              <boxGeometry args={[cardWidth, cardHeight, cardDepth]} />
-              <meshStandardMaterial
-                ref={i === 0 ? cardMatRef : undefined}
-                color={CARD_COLOR}
-                roughness={0.9}
-                emissive={accent}
-                emissiveIntensity={0}
-              />
-            </mesh>
-          );
-        })}
+          {/* Card faces, inset into the +Z face of the drawer */}
+          {Array.from({ length: CARD_ROWS }).map((_, i) => {
+            const y = h / 2 - rowSpacing * (i + 1);
+            return (
+              <mesh
+                key={i}
+                position={[0, y, d / 2 + 0.0005]}
+                receiveShadow
+              >
+                <boxGeometry args={[cardWidth, cardHeight, cardDepth]} />
+                <meshStandardMaterial
+                  ref={i === 0 ? cardMatRef : undefined}
+                  color={CARD_COLOR}
+                  roughness={0.9}
+                  emissive={accent}
+                  emissiveIntensity={0}
+                />
+              </mesh>
+            );
+          })}
+        </group>
+
+        {/* Named drawer-face group. Origin sits flush with the +Z face of
+            the drawer housing so `<Html transform>` lands on the visible
+            face. Matches `POSES.skillsCatalog.surfaceNode`. */}
+        <group
+          name="skillsCatalog:drawer"
+          position={[0, 0, d / 2 + 0.001]}
+        >
+          {showDiegeticBody ? (
+            <group scale={w / POSES.skillsCatalog.domSize.w}>
+              <Html
+                transform
+                occlude={false}
+                pointerEvents="auto"
+                style={{
+                  width: `${POSES.skillsCatalog.domSize.w}px`,
+                  height: `${POSES.skillsCatalog.domSize.h}px`,
+                }}
+              >
+                <SkillsCatalogPanel
+                  onClose={() => sceneStore.getState().close()}
+                />
+              </Html>
+            </group>
+          ) : null}
+        </group>
       </group>
 
       <Html center>

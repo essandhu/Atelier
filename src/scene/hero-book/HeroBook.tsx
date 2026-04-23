@@ -9,6 +9,9 @@ import { usePrefsStore } from '@/store/prefs-store';
 import { createPointerHandlers } from '@/interaction/pointer';
 import { useDockDriver } from '@/interaction/camera-dock/driver';
 import { POSES } from '@/interaction/camera-dock/poses';
+import { useDiegeticPresentation } from '@/interaction/camera-dock/presentation';
+import { useDockPhaseTimers } from '@/interaction/camera-dock/phase-timers';
+import { ProjectPanel } from '@/ui/panels/ProjectPanel';
 import {
   HERO_BOOK_POSITION,
   HERO_BOOK_ROTATION,
@@ -58,8 +61,26 @@ export const HeroBook = ({
     s.activePanel?.kind === 'project' ? s.activePanel.id : null,
   );
   const reducedMotion = usePrefsStore((s) => s.reducedMotion);
+  const presentation = useDiegeticPresentation();
   const isActive = activeId === project.id;
   const wasActiveRef = useRef(false);
+
+  // <Html transform> mount gate: the diegetic surface only hosts the panel
+  // body while (a) this object owns the active panel, (b) the visitor is
+  // on the diegetic path, and (c) the dock has arrived at the reading
+  // pose. Reduced-motion snaps the dock (driver step = single frame) so
+  // the body still mounts, but §11.5 routes reduced-motion to the 2D
+  // panel via useDiegeticPresentation — so in practice this branch only
+  // lights up when motion is allowed.
+  const showDiegeticBody =
+    isActive &&
+    presentation === 'diegetic' &&
+    (phase === 'docked' || phase === 'opening' || phase === 'open');
+
+  // Diegetic path has no PanelFrame to run the `opening → open` and
+  // `closing → closed` timers, so this hook fills that gap whenever this
+  // object owns the active diegetic panel.
+  useDockPhaseTimers(isActive && presentation === 'diegetic');
 
   // Focus restoration: when the panel closes, return focus to the hero
   // hotspot (mirrors ProjectBook.tsx / SkillsCatalog.tsx). Driven off
@@ -150,7 +171,7 @@ export const HeroBook = ({
 
         {/* Right page — symmetric mirror of the left page. Named so the
             camera-dock surface helper can resolve `heroBook:page` and
-            mount the `<Html transform>` reading surface in P10-16. */}
+            mount the `<Html transform>` reading surface. */}
         <group
           position={[SPINE_WIDTH / 2, 0, 0]}
           rotation={[0, 0, -HERO_PAGE_FAN_RAD]}
@@ -167,6 +188,34 @@ export const HeroBook = ({
               metalness={0}
             />
           </mesh>
+
+          {/* Diegetic reading surface — hosts the same `ProjectPanel` body
+              the 2D fallback renders, so the a11y tree is identical across
+              paths. Mounted flat on the page (rotated to lie on top of the
+              fanned page plane, +Y is "out" of the page), scaled so the
+              authored POSES DOM width fits the world-space page width. */}
+          {showDiegeticBody ? (
+            <group
+              position={[halfPage, PAGE_THICKNESS / 2 + 0.0005, 0]}
+              rotation={[-Math.PI / 2, 0, 0]}
+              scale={pageWidth / POSES.heroBook.domSize.w}
+            >
+              <Html
+                transform
+                occlude={false}
+                pointerEvents="auto"
+                style={{
+                  width: `${POSES.heroBook.domSize.w}px`,
+                  height: `${POSES.heroBook.domSize.h}px`,
+                }}
+              >
+                <ProjectPanel
+                  project={project}
+                  onClose={() => sceneStore.getState().close()}
+                />
+              </Html>
+            </group>
+          ) : null}
         </group>
       </group>
 

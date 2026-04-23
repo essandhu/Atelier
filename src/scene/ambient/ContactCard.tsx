@@ -9,6 +9,9 @@ import { usePrefsStore } from '@/store/prefs-store';
 import { createPointerHandlers } from '@/interaction/pointer';
 import { useDockDriver } from '@/interaction/camera-dock/driver';
 import { POSES } from '@/interaction/camera-dock/poses';
+import { useDiegeticPresentation } from '@/interaction/camera-dock/presentation';
+import { useDockPhaseTimers } from '@/interaction/camera-dock/phase-timers';
+import { ContactPanel } from '@/ui/panels/ContactPanel';
 import {
   CONTACT_CARD_POSITION,
   CONTACT_CARD_SIZE,
@@ -50,7 +53,22 @@ export const ContactCard = ({
     (s) => s.activePanel?.kind === 'contact',
   );
   const reducedMotion = usePrefsStore((s) => s.reducedMotion);
+  const presentation = useDiegeticPresentation();
   const wasActiveRef = useRef(false);
+
+  // Diegetic body mount gate — same rule as HeroBook / ProjectBook: the
+  // `<Html transform>` face-surface only mounts when the visitor is on
+  // the diegetic path, this card owns the active panel, and the dock
+  // spring has settled at the pose.
+  const showDiegeticBody =
+    isContactActive &&
+    presentation === 'diegetic' &&
+    (phase === 'docked' || phase === 'opening' || phase === 'open');
+
+  // Diegetic path has no PanelFrame to drive `opening → open` /
+  // `closing → closed` timers — this hook supplies them when the card
+  // owns the active diegetic panel.
+  useDockPhaseTimers(isContactActive && presentation === 'diegetic');
 
   // Focus restoration — mirror ProjectBook / SkillsCatalog / HeroBook. When
   // the panel closes, return focus to the card hotspot so keyboard users
@@ -100,7 +118,7 @@ export const ContactCard = ({
       {/* Named child group whose local origin sits at the card's top face
           (y = +thickness / 2). The camera-dock surface helper walks the
           scene graph looking for `contactCard:face` to mount the
-          `<Html transform>` reading surface once P10-16 lands. */}
+          `<Html transform>` reading surface. */}
       <group name="contactCard:face" position={[0, cardThickness / 2, 0]}>
         <mesh {...handlers} castShadow receiveShadow>
           <boxGeometry args={[cardWidth, cardThickness, cardDepth]} />
@@ -110,6 +128,33 @@ export const ContactCard = ({
             metalness={0}
           />
         </mesh>
+
+        {/* Diegetic reading surface — mounted flat on the card's top face
+            when the dock has settled. Rotated -X/2 so the DOM renders
+            perpendicular to the card surface normal (world +Y), and
+            scaled so the authored DOM width maps to the card width. */}
+        {showDiegeticBody ? (
+          <group
+            position={[0, 0.0005, 0]}
+            rotation={[-Math.PI / 2, 0, 0]}
+            scale={cardWidth / POSES.contactCard.domSize.w}
+          >
+            <Html
+              transform
+              occlude={false}
+              pointerEvents="auto"
+              style={{
+                width: `${POSES.contactCard.domSize.w}px`,
+                height: `${POSES.contactCard.domSize.h}px`,
+              }}
+            >
+              <ContactPanel
+                profile={profile}
+                onClose={() => sceneStore.getState().close()}
+              />
+            </Html>
+          </group>
+        ) : null}
       </group>
 
       {/* Zero-size DOM anchor carrying testid + tabIndex + focus ring. The
