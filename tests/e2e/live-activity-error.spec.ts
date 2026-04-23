@@ -1,21 +1,49 @@
 import { spawn, type ChildProcess } from 'node:child_process';
+import { createServer } from 'node:net';
 import { expect, test } from '@playwright/test';
 
-// Error-path e2e. Spawns its own dev server on an isolated port with
-// `GITHUB_PAT=bad` so the real `fetchGithubSnapshot` fails and `page.tsx`
+// Error-path e2e. Spawns its own dev server on an OS-assigned ephemeral port
+// with `GITHUB_PAT=bad` so the real `fetchGithubSnapshot` fails and `page.tsx`
 // returns null. Server stdout is piped into the test process so we can verify
 // the `page.github_fetch_failed` log topic — that topic is the proxy for
 // §7.2's `github_fetch_error_total` metric inside the e2e process.
+//
+// The spec previously hard-coded port 3017 which collided with the shared
+// Playwright-managed dev server on Windows (Phase 7 Deviation 6 /
+// Phase 9 full-suite evidence row 1 — EADDRINUSE). P10-00e switches to
+// `net.createServer().listen(0)` to let the OS pick a free port. There is a
+// small TOCTOU window between closing the probe server and the child
+// binding, but it is vastly safer than a hard-coded port on developer
+// machines where any other dev server may already own 3017.
 
 const ERROR_COPY = "GitHub hasn't replied yet — try again in a moment.";
-const ERROR_PORT = 3017;
-const ERROR_URL = `http://localhost:${ERROR_PORT}`;
 const BOOT_TIMEOUT_MS = 180_000;
 
 test.describe.configure({ mode: 'serial' });
 
 let server: ChildProcess | null = null;
 let capturedOutput = '';
+let errorUrl = '';
+
+const pickFreePort = (): Promise<number> =>
+  new Promise((resolve, reject) => {
+    const probe = createServer();
+    probe.unref();
+    probe.on('error', reject);
+    probe.listen(0, '127.0.0.1', () => {
+      const addr = probe.address();
+      if (addr === null || typeof addr === 'string') {
+        probe.close();
+        reject(new Error('failed to obtain ephemeral port'));
+        return;
+      }
+      const { port } = addr;
+      probe.close((closeErr) => {
+        if (closeErr) reject(closeErr);
+        else resolve(port);
+      });
+    });
+  });
 
 const waitForReady = async (
   proc: ChildProcess,
@@ -48,14 +76,16 @@ const waitForReady = async (
 
 test.beforeAll(async ({}, testInfo) => {
   testInfo.setTimeout(240_000);
+  const port = await pickFreePort();
+  errorUrl = `http://localhost:${port}`;
   // eslint-disable-next-line no-console
   console.log(
-    `[error-spec] spawning dev server on port ${ERROR_PORT} …`,
+    `[error-spec] spawning dev server on ephemeral port ${port} …`,
   );
   const isWin = process.platform === 'win32';
   server = spawn(
     isWin ? 'pnpm.cmd' : 'pnpm',
-    ['next', 'dev', '--port', String(ERROR_PORT)],
+    ['next', 'dev', '--port', String(port)],
     {
       cwd: process.cwd(),
       env: {
@@ -82,11 +112,11 @@ test.beforeAll(async ({}, testInfo) => {
     // eslint-disable-next-line no-console
     process.stderr.write(`[error-server] ${d}`);
   });
-  await waitForReady(server, ERROR_URL);
+  await waitForReady(server, errorUrl);
   // Warmup: pre-compile the route so the test's page.goto doesn't race
   // against Next.js dev-time JIT compilation.
   try {
-    await fetch(ERROR_URL, { redirect: 'manual' });
+    await fetch(errorUrl, { redirect: 'manual' });
   } catch {
     // ignore; test will report
   }
@@ -103,7 +133,7 @@ test.afterAll(async () => {
 test('live-activity-book renders the error branch when the GitHub fetch fails', async ({
   page,
 }) => {
-  const response = await page.goto(ERROR_URL);
+  const response = await page.goto(errorUrl);
   expect(response?.status()).toBe(200);
 
   const canvas = page.getByTestId('scene-canvas');
