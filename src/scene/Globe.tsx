@@ -23,12 +23,27 @@ import { track } from '@/telemetry/events';
 
 const DECAY = 0.9;
 const HOVER_LIFT = 0.001;
-const CLICK_THRESHOLD_PX = 2;
+// Browser default click slop is ~5 px (varies by OS/browser). The previous
+// 2 px value misclassified casual clicks with normal mouse jitter as drags,
+// routing them into the momentum branch (which does NOT open the panel).
+const CLICK_THRESHOLD_PX = 5;
 const REDUCED_MOTION_DAMPING = 0.1;
 const PIXELS_PER_RADIAN_LOCAL = 200;
-const HOTSPOT_PX = 96;
+// Larger than the visible globe — gives a generous click target and room
+// for the cursor around the sphere. `setPointerCapture` handles the rest:
+// once a drag starts, pointermove keeps flowing even when the cursor
+// leaves the pad, so the wider size is no longer load-bearing for drag
+// continuity — it's purely hit-target ergonomics. The pad is transparent
+// and positioned in empty desk space, so a wider hit area doesn't occlude
+// other interactive scene objects.
+const HOTSPOT_PX = 240;
+// Click is treated as on-globe only when it lands within this radius of the
+// hotspot centre. Approximately matches the visible sphere so empty-desk
+// clicks within the wider 240×240 drag area don't open the panel.
+const CLICK_RADIUS_PX = 60;
 
 type PointerInfo = {
+  pointerId: number | null;
   startX: number;
   startTs: number;
   lastX: number;
@@ -38,11 +53,33 @@ type PointerInfo = {
 };
 
 /**
- * Interaction lives on the HTML hotspot rather than the 3D mesh so the
- * drag surface has a deterministic DOM bounding box (e2e-friendly) and
- * so Playwright's synthetic pointer events flow without `setPointerCapture`
- * quirks. The sphere is purely visual; `sphereRef.current.rotation.y`
- * is driven from the hotspot's pointer handlers.
+ * Interaction is split across two surfaces:
+ *
+ * - **Drag-to-spin + click + hover** live on a 240×240 transparent outer
+ *   pad under drei `<Html>`. `setPointerCapture` on pointerdown keeps
+ *   pointermove flowing even when the cursor drifts outside the pad, so
+ *   fast drags stay smooth. (An earlier revision avoided capture on the
+ *   theory that it broke Playwright's synthetic pointer events — it
+ *   doesn't, and without it the drag visibly stutters whenever the cursor
+ *   exits the pad.)
+ * - **Focus + keyboard** live on a 1×1 inner anchor absolutely positioned
+ *   at the pad's centre. The anchor owns `tabIndex`, `role`, `aria-*`,
+ *   and `.scene-focus-ring`, so the focus ring paints tight on the
+ *   visible globe instead of wrapping the whole 240×240 pad.
+ *   **Critical:** the outer pad must NOT set `opacity: 0` — CSS opacity
+ *   applies to the entire subtree, so an opacity:0 parent suppresses the
+ *   inner anchor's focus ring even when `:focus-visible` sets opacity to 1.
+ * - **Click region is narrowed via `CLICK_RADIUS_PX`** — `onClick` only
+ *   opens the panel when the click is within ~60 px of the hotspot
+ *   centre, i.e. on or near the visible globe. R3F mesh `onClick` would
+ *   feel right architecturally, but drei `<Html>`'s portaled div sits
+ *   above the canvas in DOM order: when click bubbles from the hotspot
+ *   div to R3F's canvas-parent listener, `event.offsetX/Y` is relative to
+ *   the hotspot div, not the canvas — so R3F's raycaster casts from the
+ *   wrong screen position and never hits the sphere.
+ * - **Drag-then-click** is suppressed via `lastGestureWasDragRef`; the
+ *   browser fires `click` after every pointerup-on-same-element, so drag
+ *   would otherwise open the panel on release.
  */
 export const Globe = (): React.ReactElement => {
   const groupRef = useRef<THREE.Group>(null);
@@ -53,6 +90,7 @@ export const Globe = (): React.ReactElement => {
   const angularVelocityRef = useRef(IDLE_SPIN_RATE);
   const rotationRef = useRef(0);
   const pointerRef = useRef<PointerInfo>({
+    pointerId: null,
     startX: 0,
     startTs: 0,
     lastX: 0,
@@ -60,6 +98,10 @@ export const Globe = (): React.ReactElement => {
     totalRadians: 0,
     moved: false,
   });
+  // Set to `true` by onPointerUp when the gesture qualified as a drag, so the
+  // R3F mesh onClick that fires right after can skip the panel-open. Reset to
+  // `false` after each click cycle.
+  const lastGestureWasDragRef = useRef(false);
   const reducedMotionRef = useRef<boolean>(
     prefsStore.getState().reducedMotion,
   );
@@ -143,7 +185,17 @@ export const Globe = (): React.ReactElement => {
   });
 
   const onPointerDown = (event: React.PointerEvent<HTMLDivElement>): void => {
+    // Stop bubbling to R3F's canvas-parent listener so its onPointerMissed
+    // doesn't fire on the eventual pointerup and close a panel that the
+    // click just opened.
+    event.stopPropagation();
+    // Route subsequent pointermove/pointerup to this element even when the
+    // cursor leaves the 240×240 hotspot. Without capture, fast drags past
+    // the hotspot edge drop events until the cursor re-enters — which
+    // reads as choppy rotation.
+    event.currentTarget.setPointerCapture(event.pointerId);
     pointerRef.current = {
+      pointerId: event.pointerId,
       startX: event.clientX,
       startTs: performance.now(),
       lastX: event.clientX,
@@ -155,6 +207,7 @@ export const Globe = (): React.ReactElement => {
 
   const onPointerMove = (event: React.PointerEvent<HTMLDivElement>): void => {
     if (!pointerRef.current.captured) return;
+    if (pointerRef.current.pointerId !== event.pointerId) return;
     const sphere = sphereRef.current;
     if (!sphere) return;
     const dx = event.clientX - pointerRef.current.lastX;
@@ -167,27 +220,53 @@ export const Globe = (): React.ReactElement => {
     sphere.rotation.y = rotationRef.current;
   };
 
+  const finishGesture = (): void => {
+    pointerRef.current.captured = false;
+    pointerRef.current.pointerId = null;
+  };
+
   const onPointerUp = (event: React.PointerEvent<HTMLDivElement>): void => {
     const info = pointerRef.current;
     if (!info.captured) return;
-    info.captured = false;
+    if (info.pointerId !== event.pointerId) return;
 
+    event.stopPropagation();
     const dx = event.clientX - info.startX;
     const durationMs = Math.max(1, performance.now() - info.startTs);
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    finishGesture();
 
-    if (!info.moved || Math.abs(dx) < CLICK_THRESHOLD_PX) {
-      sceneStore.getState().open({ kind: 'globe' });
+    const wasDrag = info.moved && Math.abs(dx) >= CLICK_THRESHOLD_PX;
+    lastGestureWasDragRef.current = wasDrag;
+
+    if (wasDrag) {
+      let v = impartMomentumFromDrag(dx, durationMs);
+      if (reducedMotionRef.current) v *= REDUCED_MOTION_DAMPING;
+      angularVelocityRef.current = v;
+      track({
+        name: 'globe.spun',
+        durationMs,
+        totalRadians: info.totalRadians,
+      });
+    }
+  };
+
+  const onClick = (event: React.MouseEvent<HTMLDivElement>): void => {
+    event.stopPropagation();
+    if (lastGestureWasDragRef.current) {
+      lastGestureWasDragRef.current = false;
       return;
     }
-
-    let v = impartMomentumFromDrag(dx, durationMs);
-    if (reducedMotionRef.current) v *= REDUCED_MOTION_DAMPING;
-    angularVelocityRef.current = v;
-    track({
-      name: 'globe.spun',
-      durationMs,
-      totalRadians: info.totalRadians,
-    });
+    // Narrow the open-on-click region to the visible globe — the wider
+    // hotspot is for drag, not for clicking on empty desk space.
+    const rect = event.currentTarget.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const dist = Math.hypot(event.clientX - cx, event.clientY - cy);
+    if (dist > CLICK_RADIUS_PX) return;
+    sceneStore.getState().open({ kind: 'globe' });
   };
 
   const onPointerOver = (): void => {
@@ -220,7 +299,10 @@ export const Globe = (): React.ReactElement => {
         <meshStandardMaterial color="#8b6a3a" roughness={0.5} metalness={0.3} />
       </mesh>
 
-      {/* Globe sphere — purely visual; pointer handling is on the Html hotspot */}
+      {/* Globe sphere — purely visual; pointer/click handling lives on the
+          Html hotspot. R3F mesh onClick would feel right but drei <Html>'s
+          portaled div confuses R3F's raycast positioning (offsetX/Y is
+          relative to the hotspot div instead of the canvas). */}
       <mesh ref={sphereRef} castShadow receiveShadow>
         <sphereGeometry args={[GLOBE_RADIUS, 32, 24]} />
         <meshStandardMaterial
@@ -243,30 +325,63 @@ export const Globe = (): React.ReactElement => {
       </mesh>
 
       <Html center>
+        {/* Outer pad: drag/click/hover surface. Sized at HOTSPOT_PX to give
+            drag plenty of travel and to be a generous click target. Not
+            focusable — the focus ring would otherwise wrap this whole
+            240×240 area.
+
+            NOTE: no `opacity: 0` here. CSS opacity applies to the full
+            subtree, so an opacity:0 parent would hide the inner anchor's
+            focus ring even when `:focus-visible` sets `opacity: 1`. The
+            pad has no visible content of its own (transparent background,
+            no border), so it's already invisible without the opacity
+            override. */}
         <div
-          ref={anchorRef}
-          tabIndex={TAB_ORDER.globe}
-          role="button"
-          aria-haspopup="dialog"
-          aria-label="Globe — press Enter to open location details"
-          data-testid="globe-hotspot"
-          data-globe-rotation="0.000"
-          data-reduced-motion={reducedMotion ? 'true' : 'false'}
-          className="scene-focus-ring"
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
           onPointerEnter={onPointerOver}
           onPointerLeave={onPointerOut}
-          onKeyDown={onKeyDown}
+          onClick={onClick}
           style={{
+            position: 'relative',
             width: HOTSPOT_PX,
             height: HOTSPOT_PX,
-            opacity: 0,
             cursor: 'grab',
             touchAction: 'none',
           }}
-        />
+        >
+          {/* Inner anchor: focus + keyboard target. 1×1 at the centre so
+              `.scene-focus-ring:focus-visible`'s 8 px min-box renders a
+              tight ring on the visible globe — matching every other scene
+              hotspot. testid + telemetry attrs live here so the test harness
+              still queries this element via `globe-hotspot`.
+              `pointerEvents: 'auto'` so Playwright's actionability check
+              sees this as the topmost element at its coords (otherwise it
+              reports the outer pad as "intercepting"). Pointer/click events
+              bubble to the outer div, which carries the actual handlers. */}
+          <div
+            ref={anchorRef}
+            tabIndex={TAB_ORDER.globe}
+            role="button"
+            aria-haspopup="dialog"
+            aria-label="Globe — press Enter to open location details"
+            data-testid="globe-hotspot"
+            data-globe-rotation="0.000"
+            data-reduced-motion={reducedMotion ? 'true' : 'false'}
+            className="scene-focus-ring"
+            onKeyDown={onKeyDown}
+            style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: 1,
+              height: 1,
+              opacity: 0,
+            }}
+          />
+        </div>
       </Html>
     </group>
   );
