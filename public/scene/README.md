@@ -72,6 +72,22 @@ files is a developer-local step — see
 workflow. The runtime path tolerates missing files by design, so CI is green
 whether or not the bakes are committed.
 
+## Phase 10 GitHub avatar
+
+`avatar.jpg` is the square WallPiece texture (§5.11). It is **not**
+committed — `scripts/fetch-github-avatar.mjs` regenerates it on every
+`pnpm assets:build` from `https://github.com/{GITHUB_USERNAME}.png?size=460`.
+
+- Path: `public/scene/avatar.jpg` (ignored by git).
+- Refresh: `pnpm assets:fetch-avatar` (also invoked by `pnpm assets:build`).
+- Dry-run: `pnpm assets:fetch-avatar --dry-run` logs the URL and target path
+  without touching disk.
+- Username resolution: `--username=<name>` argv → `GITHUB_USERNAME` env →
+  `essandhu` (matches `src/content/profile.ts`).
+- Fallback: when the local JPEG is missing, `<WallPiece>` uses
+  `GithubSnapshot.avatarUrl` — the stable `github.com/{user}.png?size=460`
+  redirect — so the scene still renders in a clean checkout.
+
 ## Phase 9 compression review
 
 **Date:** 2026-04-18.
