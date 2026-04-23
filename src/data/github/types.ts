@@ -23,6 +23,15 @@ export interface GithubSnapshot {
   // fetched at build/ISR time is the primary texture; this URL is the
   // runtime failover if the local JPEG is missing.
   avatarUrl: string;
+  // Max-stargazer repo for the owner, derived at snapshot time from
+  // `UserActivityResponse.user.repositories.nodes`. Surfaces on the
+  // Pinboard "top repo" card (§5.11). Null when the owner has no public
+  // repositories or the fixture/offline path carries no repo info.
+  topRepo: { nameWithOwner: string; stars: number } | null;
+  // Public repository count for the owner — pulled from
+  // `UserActivityResponse.user.repositories.totalCount`, not from
+  // `nodes.length` (which is capped by pagination).
+  publicRepos: number;
 }
 
 // Derived stats displayed on the wall pinboard (§5.11). Computed by a

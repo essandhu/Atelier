@@ -9,6 +9,8 @@ import {
 import { UserActivity, UserContributions } from '@/data/github/queries';
 import { retryFetch } from '@/data/github/retry';
 import {
+  selectPublicRepoCount,
+  selectTopRepo,
   toActivityEvents,
   toContributionDays,
 } from '@/data/github/transform';
@@ -125,6 +127,8 @@ export const fetchGithubSnapshot = async (
     contributions: toContributionDays(contributions),
     events: toActivityEvents(activity),
     avatarUrl: avatarRedirectUrl(username),
+    topRepo: selectTopRepo(activity),
+    publicRepos: selectPublicRepoCount(activity),
   };
 };
 

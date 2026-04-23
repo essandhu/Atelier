@@ -566,5 +566,11 @@
       "title": "tracking: bump R3F to the React-19 line",
       "url": "https://github.com/octocat/desk-runtime/commit/evt-14"
     }
-  ]
+  ],
+  "avatarUrl": "https://github.com/atelier-fixture.png?size=460",
+  "topRepo": {
+    "nameWithOwner": "octocat/atelier",
+    "stars": 321
+  },
+  "publicRepos": 5
 }

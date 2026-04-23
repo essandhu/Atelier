@@ -4,9 +4,11 @@ import { ProjectPanel } from '@/ui/panels/ProjectPanel';
 import { GlobePanel } from '@/ui/panels/GlobePanel';
 import { SkillsCatalogPanel } from '@/ui/panels/SkillsCatalogPanel';
 import { EventsFeedPanel } from '@/ui/panels/EventsFeedPanel';
+import { ContactPanel } from '@/ui/panels/ContactPanel';
 import { sceneStore } from '@/store/scene-store';
 import { fixtures } from '@/../tests/fixtures/projects';
 import type { GithubSnapshot } from '@/data/github/types';
+import type { Profile } from '@/content/profile';
 
 // Mirror of the mock used in each individual panel test file — renders the
 // radix-ui Dialog Portal inline so the content is queryable in happy-dom.
@@ -60,10 +62,34 @@ const openEventsPanel = () => {
   });
 };
 
+const openContactPanel = () => {
+  sceneStore.setState({
+    phase: 'open',
+    activePanel: { kind: 'contact' },
+    hoveredObject: null,
+    openedAt: 0,
+  });
+};
+
+const contactProfile: Profile = {
+  name: 'Erick Sandhu',
+  role: 'Software Developer',
+  positioning: 'Positioning copy.',
+  location: 'Texas, United States',
+  githubUsername: 'essandhu',
+  contacts: {
+    email: 'essandhu22@gmail.com',
+    links: [{ label: 'GitHub', href: 'https://github.com/essandhu' }],
+    resumeUrl: 'https://example.com/erick-sandhu-resume.pdf',
+  },
+};
+
 const eventsSnapshot: GithubSnapshot = {
   fetchedAt: '2026-04-22T10:00:00.000Z',
   username: 'essandhu',
   avatarUrl: 'https://github.com/essandhu.png?size=460',
+  topRepo: null,
+  publicRepos: 0,
   contributions: [],
   events: [
     {
@@ -115,6 +141,13 @@ describe('Panel a11y contract parity', () => {
       open: openEventsPanel,
       render: () => (
         <EventsFeedPanel snapshot={eventsSnapshot} onClose={() => {}} />
+      ),
+    },
+    {
+      label: '<ContactPanel>',
+      open: openContactPanel,
+      render: () => (
+        <ContactPanel profile={contactProfile} onClose={() => {}} />
       ),
     },
   ])('$label', ({ open, render: renderPanel }) => {
