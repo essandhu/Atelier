@@ -2,8 +2,8 @@
 
 import { useMemo } from 'react';
 import * as THREE from 'three';
+import { NOTES_POSITION } from '@/scene/ambient/positions';
 
-const NOTES_POSITION: [number, number, number] = [0.25, 0.792, 0.22];
 const NOTES_SIZE: [number, number, number] = [0.15, 0.002, 0.22];
 const NOTES_ROTATION_Y = (-15 * Math.PI) / 180;
 

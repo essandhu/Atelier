@@ -5,12 +5,19 @@ import {
   markerCartesian,
 } from '@/scene/globe/positions';
 
-describe('GLOBE_POSITION', () => {
-  it('sits on the back-right of the desk surface (y ≈ 0.86)', () => {
+describe('GLOBE_POSITION (P10-14 front-left rebalance)', () => {
+  it('sits on the front-left of the desk surface', () => {
     expect(GLOBE_POSITION).toHaveLength(3);
-    expect(GLOBE_POSITION[0]).toBeGreaterThan(0);
-    expect(GLOBE_POSITION[2]).toBeLessThan(0);
+    // Front-left: negative X, positive Z, above desk surface (y > 0.75).
+    expect(GLOBE_POSITION[0]).toBeLessThan(0);
+    expect(GLOBE_POSITION[2]).toBeGreaterThan(0);
     expect(GLOBE_POSITION[1]).toBeGreaterThan(0.75);
+  });
+
+  it('matches architecture §8 Stage A deliverable 6 anchor (-0.65, 0.86, 0.25)', () => {
+    expect(GLOBE_POSITION[0]).toBeCloseTo(-0.65);
+    expect(GLOBE_POSITION[1]).toBeCloseTo(0.86);
+    expect(GLOBE_POSITION[2]).toBeCloseTo(0.25);
   });
 });
 

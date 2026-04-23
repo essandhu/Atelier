@@ -4,10 +4,15 @@ import { forwardRef, useMemo } from 'react';
 import * as THREE from 'three';
 import { presets } from '@/time-of-day/presets';
 import { getAccent } from '@/ui/controls/accent';
+import {
+  LAMP_BASE_POSITION,
+  LAMP_BULB_POSITION,
+} from '@/scene/lamp/positions';
 
-export const LAMP_BULB_POSITION: [number, number, number] = [0.5, 1.3, 0.3];
+// Re-export for back-compat with existing consumers. The canonical home is
+// now `@/scene/lamp/positions`.
+export { LAMP_BULB_POSITION } from '@/scene/lamp/positions';
 
-const BASE_POSITION: [number, number, number] = [0.5, 0.79, 0.15];
 const BODY_COLOR = '#4a3a2a';
 
 export const Lamp = forwardRef<THREE.Mesh>((_, bulbRef) => {
@@ -16,7 +21,7 @@ export const Lamp = forwardRef<THREE.Mesh>((_, bulbRef) => {
   const emissiveIntensity = evening.lampEmissionStrength;
 
   return (
-    <group position={BASE_POSITION}>
+    <group position={LAMP_BASE_POSITION}>
       <mesh position={[0, 0.01, 0]} castShadow receiveShadow>
         <cylinderGeometry args={[0.12, 0.14, 0.02, 24]} />
         <meshStandardMaterial color={BODY_COLOR} roughness={0.55} metalness={0.35} />
@@ -40,9 +45,9 @@ export const Lamp = forwardRef<THREE.Mesh>((_, bulbRef) => {
       <mesh
         ref={bulbRef}
         position={[
-          LAMP_BULB_POSITION[0] - BASE_POSITION[0],
-          LAMP_BULB_POSITION[1] - BASE_POSITION[1],
-          LAMP_BULB_POSITION[2] - BASE_POSITION[2],
+          LAMP_BULB_POSITION[0] - LAMP_BASE_POSITION[0],
+          LAMP_BULB_POSITION[1] - LAMP_BASE_POSITION[1],
+          LAMP_BULB_POSITION[2] - LAMP_BASE_POSITION[2],
         ]}
       >
         <sphereGeometry args={[0.05, 24, 24]} />
