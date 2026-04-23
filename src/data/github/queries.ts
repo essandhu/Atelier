@@ -51,8 +51,10 @@ export const UserActivity = /* GraphQL */ `
       repositories(
         first: 10
         ownerAffiliations: OWNER
+        privacy: PUBLIC
         orderBy: { field: STARGAZERS, direction: DESC }
       ) {
+        totalCount
         nodes {
           nameWithOwner
           stargazerCount

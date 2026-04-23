@@ -83,6 +83,7 @@ const snapshot = {
   username: USERNAME,
   contributions,
   events,
+  avatarUrl: `https://github.com/${encodeURIComponent(USERNAME)}.png?size=460`,
 };
 
 writeFileSync(OUT, JSON.stringify(snapshot, null, 2) + '\n');

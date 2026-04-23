@@ -102,6 +102,7 @@ describe('toActivityEvents', () => {
           ],
         },
         repositories: {
+          totalCount: 1,
           nodes: [
             {
               nameWithOwner: 'me/repo',

@@ -63,6 +63,7 @@ const openEventsPanel = () => {
 const eventsSnapshot: GithubSnapshot = {
   fetchedAt: '2026-04-22T10:00:00.000Z',
   username: 'essandhu',
+  avatarUrl: 'https://github.com/essandhu.png?size=460',
   contributions: [],
   events: [
     {

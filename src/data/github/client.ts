@@ -124,5 +124,12 @@ export const fetchGithubSnapshot = async (
     username,
     contributions: toContributionDays(contributions),
     events: toActivityEvents(activity),
+    avatarUrl: avatarRedirectUrl(username),
   };
 };
+
+// Stable public redirect — used as the failover texture for the square
+// WallPiece (§5.11) when public/scene/avatar.jpg is missing or stale.
+// `size=460` matches the 0.4 × 0.4 m frame at high-DPI rendering.
+export const avatarRedirectUrl = (username: string): string =>
+  `https://github.com/${encodeURIComponent(username)}.png?size=460`;
