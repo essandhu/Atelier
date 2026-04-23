@@ -119,7 +119,7 @@ test('After dismissing intro, Tab walks skip → project books in TAB_ORDER sequ
   expect(stackCount).toBe(expectedBookIds.length + 1);
 });
 
-test('Tab continues through project books → skills-catalog → globe', async ({
+test('Tab continues through project books → skills-catalog → globe → events hotspot', async ({
   page,
 }) => {
   await dismissIntro(page);
@@ -133,10 +133,14 @@ test('Tab continues through project books → skills-catalog → globe', async (
   await expect(page.getByTestId('globe-hotspot')).toBeAttached({
     timeout: 15_000,
   });
+  await expect(page.getByTestId('live-activity-hotspot')).toBeAttached({
+    timeout: 15_000,
+  });
 
   await resetFocusToBody(page);
 
-  // Skip → 4 project books (100..103) → skills-catalog (150) → globe (160).
+  // Skip → 4 project books (100..103) → skills-catalog (150) → globe (160)
+  // → events-feed hotspot (200).
   await page.keyboard.press('Tab');
   expect(await focusedTestId(page)).toBe('skip-to-fallback');
   for (const id of ['atelier', 'synapse-oms', 'sentinel', 'aurora-ui']) {
@@ -147,6 +151,8 @@ test('Tab continues through project books → skills-catalog → globe', async (
   expect(await focusedTestId(page)).toBe('skills-catalog-hotspot');
   await page.keyboard.press('Tab');
   expect(await focusedTestId(page)).toBe('globe-hotspot');
+  await page.keyboard.press('Tab');
+  expect(await focusedTestId(page)).toBe('live-activity-hotspot');
 });
 
 test('Focus restoration — project panel Escape returns focus to book', async ({
@@ -233,6 +239,32 @@ test('Focus restoration — globe panel Escape returns focus to globe hotspot', 
     .toBe('globe-hotspot');
 });
 
+test('Focus restoration — events panel Escape returns focus to live-activity hotspot', async ({
+  page,
+}) => {
+  await dismissIntro(page);
+  await page.goto('/?time=evening');
+  await expect(page.getByTestId('scene-canvas').locator('canvas')).toBeAttached(
+    { timeout: 15_000 },
+  );
+  await expect(page.getByTestId('live-activity-hotspot')).toBeAttached({
+    timeout: 15_000,
+  });
+
+  await page.getByTestId('live-activity-hotspot').focus();
+  expect(await focusedTestId(page)).toBe('live-activity-hotspot');
+
+  await page.keyboard.press('Enter');
+  await expect(page.getByTestId('events-feed-panel')).toBeVisible();
+
+  await page.keyboard.press('Escape');
+  await expect(page.getByTestId('events-feed-panel')).not.toBeVisible();
+
+  await expect
+    .poll(() => focusedTestId(page))
+    .toBe('live-activity-hotspot');
+});
+
 test('Focus-visible renders a visible outline on the focused scene anchor', async ({
   page,
 }) => {
@@ -251,16 +283,27 @@ test('Focus-visible renders a visible outline on the focused scene anchor', asyn
   await page.keyboard.press('Tab'); // first book
   expect(await focusedTestId(page)).toBe('project-book-atelier');
 
-  // `.scene-focus-ring:focus-visible` renders `outline: 2px solid var(--accent)`.
-  // The computed outline-width is reported as a px value ≥ 1 when the ring is
-  // visible; resilient to accent-color variations per time-of-day state.
-  const outlineWidthPx = await page.evaluate(() => {
+  // `.scene-focus-ring:focus-visible` renders `outline: 2px solid var(--accent)`
+  // *on a visible element*. The original Phase-9 assertion checked only
+  // outline-width, which computes correctly even when the element has
+  // `opacity: 0` inline (and therefore paints nothing). Assert all three
+  // properties so a future regression to the inline opacity:0 vs.
+  // stylesheet opacity:1 cascade can't slip through.
+  const visible = await page.evaluate(() => {
     const el = document.activeElement as HTMLElement | null;
-    if (!el) return 0;
+    if (!el) return null;
     const cs = getComputedStyle(el);
-    const raw = cs.outlineWidth;
-    const parsed = parseFloat(raw);
-    return Number.isFinite(parsed) ? parsed : 0;
+    return {
+      outlineWidthPx: parseFloat(cs.outlineWidth) || 0,
+      outlineStyle: cs.outlineStyle,
+      opacity: cs.opacity,
+    };
   });
-  expect(outlineWidthPx).toBeGreaterThanOrEqual(1);
+  expect(visible).not.toBeNull();
+  expect(visible!.outlineWidthPx).toBeGreaterThanOrEqual(1);
+  expect(visible!.outlineStyle).not.toBe('none');
+  // opacity must be exactly '1' so the ring actually paints. Inline
+  // `style={{ opacity: 0 }}` on the anchor would defeat the rule without the
+  // `!important` markers in `.scene-focus-ring:focus-visible`.
+  expect(visible!.opacity).toBe('1');
 });

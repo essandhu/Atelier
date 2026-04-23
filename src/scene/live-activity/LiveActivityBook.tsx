@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, useMemo } from 'react';
+import { forwardRef, useEffect, useMemo, useRef } from 'react';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import type { GithubSnapshot, ContributionDay } from '@/data/github/types';
@@ -11,6 +11,8 @@ import {
   GRID_CAPACITY,
 } from '@/scene/live-activity/ContributionGrid';
 import { EventsFeed } from '@/scene/live-activity/EventsFeed';
+import { sceneStore, useSceneStore } from '@/store/scene-store';
+import { TAB_ORDER } from '@/interaction/tab-order';
 
 // Exported so Phase 4's ProjectBookStack can align next to the live book.
 export const BOOK_POSITION: [number, number, number] = [-0.05, 0.793, 0.12];
@@ -122,6 +124,19 @@ const LEFT_PAGE_CENTER: [number, number, number] = [
 
 const RIGHT_PAGE_SURFACE_Y = PAGE_THICKNESS + 0.0005;
 
+// Drei `<Html transform>` renders 1 CSS px ≈ 1 world unit. The right page is
+// PAGE_WIDTH (0.2) world units wide; we author DOM at PAGE_DOM_WIDTH px and
+// scale the wrapping group so the typeset surface matches the page.
+const PAGE_DOM_WIDTH = 220;
+const PAGE_DOM_HEIGHT = 260;
+const HTML_SCALE = PAGE_WIDTH / PAGE_DOM_WIDTH;
+const RIGHT_PAGE_HTML_POSITION: [number, number, number] = [
+  (PAGE_WIDTH / 2) + SPINE_WIDTH / 2,
+  RIGHT_PAGE_SURFACE_Y,
+  0,
+];
+const RIGHT_PAGE_HTML_ROTATION: [number, number, number] = [-Math.PI / 2, 0, 0];
+
 export const LiveActivityBook = ({
   snapshot,
   state,
@@ -140,6 +155,57 @@ export const LiveActivityBook = ({
     snapshot.events.length === 0;
   const isPopulated = !isError && !isLoading;
 
+  // Right-page hotspot: invisible DOM rect that owns pointer + keyboard
+  // activation for opening the EventsFeedPanel. Mirrors the Globe/ProjectBook
+  // pattern so focus restoration runs through the same scene-store phase
+  // machine.
+  const hotspotAnchorRef = useRef<HTMLDivElement>(null);
+  const phase = useSceneStore((s) => s.phase);
+  const isEventsActive = useSceneStore(
+    (s) => s.activePanel?.kind === 'events',
+  );
+  const wasActiveRef = useRef(false);
+  useEffect(() => {
+    if (isEventsActive && phase === 'opening') {
+      wasActiveRef.current = true;
+    }
+    if (phase === 'closed' && wasActiveRef.current) {
+      hotspotAnchorRef.current?.focus();
+      wasActiveRef.current = false;
+    }
+  }, [phase, isEventsActive]);
+
+  const openEventsPanel = (): void => {
+    sceneStore.getState().open({ kind: 'events' });
+  };
+
+  const onHotspotKeyDown = (
+    event: React.KeyboardEvent<HTMLDivElement>,
+  ): void => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    openEventsPanel();
+  };
+
+  const onMeshClick = (event: { stopPropagation: () => void }): void => {
+    event.stopPropagation();
+    openEventsPanel();
+  };
+
+  const onMeshPointerOver = (event: {
+    stopPropagation: () => void;
+  }): void => {
+    event.stopPropagation();
+    sceneStore.getState().setHovered('live-activity-events');
+  };
+
+  const onMeshPointerOut = (event: {
+    stopPropagation: () => void;
+  }): void => {
+    event.stopPropagation();
+    sceneStore.getState().setHovered(null);
+  };
+
   return (
     <group position={BOOK_POSITION} rotation={BOOK_ROTATION}>
       {/* DOM marker for e2e; R3F `<group>` does not emit a DOM node, so we
@@ -157,89 +223,111 @@ export const LiveActivityBook = ({
         <ContributionGrid contributions={contributions} state={state} />
       </group>
 
-      {isError ? (
-        <Html
-          transform
-          occlude={false}
-          distanceFactor={1}
-          position={[
-            (PAGE_WIDTH / 2) + SPINE_WIDTH / 2,
-            RIGHT_PAGE_SURFACE_Y,
-            0,
-          ]}
-          rotation={[-Math.PI / 2, 0, 0]}
-        >
-          <div
-            data-testid="live-activity-error"
-            style={{
-              width: '360px',
-              fontFamily: 'var(--font-sans)',
-              fontSize: '13px',
-              color: 'rgb(232 226 212 / 0.55)',
-              lineHeight: 1.4,
-              fontStyle: 'italic',
-            }}
-          >
-            {ERROR_COPY}
-          </div>
-        </Html>
-      ) : null}
+      <group
+        position={RIGHT_PAGE_HTML_POSITION}
+        rotation={RIGHT_PAGE_HTML_ROTATION}
+        scale={HTML_SCALE}
+      >
+        {isError ? (
+          <Html transform occlude={false}>
+            <div
+              data-testid="live-activity-error"
+              style={{
+                width: `${PAGE_DOM_WIDTH}px`,
+                fontFamily: 'var(--font-sans)',
+                fontSize: '11px',
+                color: 'rgb(232 226 212 / 0.55)',
+                lineHeight: 1.4,
+                fontStyle: 'italic',
+              }}
+            >
+              {ERROR_COPY}
+            </div>
+          </Html>
+        ) : null}
 
-      {isLoading ? (
-        <Html
-          transform
-          occlude={false}
-          distanceFactor={1}
-          position={[
-            (PAGE_WIDTH / 2) + SPINE_WIDTH / 2,
-            RIGHT_PAGE_SURFACE_Y,
-            0,
-          ]}
-          rotation={[-Math.PI / 2, 0, 0]}
-        >
-          <div
-            data-testid="live-activity-loading"
-            style={{
-              width: '360px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '8px',
-            }}
+        {isLoading ? (
+          <Html transform occlude={false}>
+            <div
+              data-testid="live-activity-loading"
+              style={{
+                width: `${PAGE_DOM_WIDTH}px`,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '6px',
+              }}
+            >
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  style={{
+                    height: '14px',
+                    borderRadius: '2px',
+                    backgroundColor: 'rgb(232 226 212 / 0.08)',
+                    animation: `pulse 1.4s ease-in-out ${i * 0.12}s infinite`,
+                  }}
+                />
+              ))}
+              <style>
+                {`@keyframes pulse { 0%,100% { opacity: 0.4 } 50% { opacity: 0.9 } }`}
+              </style>
+            </div>
+          </Html>
+        ) : null}
+
+        {isPopulated ? (
+          <EventsFeed
+            events={snapshot.events}
+            newEventIds={newEventIds}
+            domWidth={PAGE_DOM_WIDTH}
+            domHeight={PAGE_DOM_HEIGHT}
+          />
+        ) : null}
+
+      </group>
+
+      {/* Activation surface — invisible 3D mesh over the right page. R3F
+          raycaster owns clicks (the proven pattern used by ProjectBook +
+          SkillsCatalog); `<Html>` anchor below is a zero-size keyboard /
+          focus-ring stop only. Keeping DOM pointer events on a sized div
+          caused clicks to be silently eaten in this codebase. */}
+      {!isError ? (
+        <>
+          <mesh
+            position={[
+              RIGHT_PAGE_HTML_POSITION[0],
+              RIGHT_PAGE_HTML_POSITION[1] + 0.001,
+              RIGHT_PAGE_HTML_POSITION[2],
+            ]}
+            rotation={RIGHT_PAGE_HTML_ROTATION}
+            onClick={isLoading ? undefined : onMeshClick}
+            onPointerOver={onMeshPointerOver}
+            onPointerOut={onMeshPointerOut}
           >
-            {[0, 1, 2].map((i) => (
+            <planeGeometry args={[PAGE_WIDTH, BOOK_DEPTH - PAGE_INSET]} />
+            <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+          </mesh>
+
+          <group position={RIGHT_PAGE_HTML_POSITION}>
+            <Html center>
               <div
-                key={i}
-                style={{
-                  height: '18px',
-                  borderRadius: '2px',
-                  backgroundColor: 'rgb(232 226 212 / 0.08)',
-                  animation: `pulse 1.4s ease-in-out ${i * 0.12}s infinite`,
-                }}
+                ref={hotspotAnchorRef}
+                tabIndex={TAB_ORDER.eventsFeed}
+                role="button"
+                aria-haspopup="dialog"
+                aria-label={
+                  isLoading
+                    ? 'Recent GitHub activity (loading)'
+                    : 'Open recent GitHub activity'
+                }
+                data-testid="live-activity-hotspot"
+                className="scene-focus-ring"
+                onKeyDown={onHotspotKeyDown}
+                style={{ width: 0, height: 0, opacity: 0 }}
               />
-            ))}
-            <style>
-              {`@keyframes pulse { 0%,100% { opacity: 0.4 } 50% { opacity: 0.9 } }`}
-            </style>
-          </div>
-        </Html>
-      ) : null}
-
-      {isPopulated ? (
-        <EventsFeed
-          events={snapshot.events}
-          newEventIds={newEventIds}
-          htmlProps={{
-            transform: true,
-            occlude: false,
-            distanceFactor: 1,
-            position: [
-              (PAGE_WIDTH / 2) + SPINE_WIDTH / 2,
-              RIGHT_PAGE_SURFACE_Y,
-              0,
-            ],
-            rotation: [-Math.PI / 2, 0, 0],
-          }}
-        />
+            </Html>
+          </group>
+        </>
       ) : null}
     </group>
   );

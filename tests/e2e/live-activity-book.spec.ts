@@ -5,7 +5,7 @@ test.beforeEach(async ({ page }) => {
   await dismissIntro(page);
 });
 
-test('live-activity-book renders fixture events and contribution grid', async ({
+test('live-activity-book renders preview, contribution grid, and exposes a hotspot', async ({
   page,
 }) => {
   const consoleErrors: string[] = [];
@@ -30,17 +30,14 @@ test('live-activity-book renders fixture events and contribution grid', async ({
   const grid = page.getByTestId('contribution-grid');
   await expect(grid).toBeAttached({ timeout: 15_000 });
 
+  // The right-page in-scene preview is read-only typography (no anchors).
+  // GitHub links live in the EventsFeedPanel that the hotspot opens.
   const feed = page.getByTestId('events-feed');
-  await expect(feed).toBeVisible({ timeout: 15_000 });
+  await expect(feed).toBeAttached({ timeout: 15_000 });
+  expect(await feed.locator('a').count()).toBe(0);
 
-  const links = feed.locator('a[href^="https://github.com/"]');
-  await expect(links.first()).toBeVisible();
-  const count = await links.count();
-  expect(count).toBeGreaterThanOrEqual(10);
-
-  const firstLink = links.first();
-  await expect(firstLink).toHaveAttribute('target', '_blank');
-  await expect(firstLink).toHaveAttribute('rel', 'noopener noreferrer');
+  const hotspot = page.getByTestId('live-activity-hotspot');
+  await expect(hotspot).toBeAttached({ timeout: 15_000 });
 
   const unexpectedFailedUrls = failedUrls.filter(
     (u) => !/lightmap|favicon|HEAD/i.test(u),
@@ -56,4 +53,34 @@ test('live-activity-book renders fixture events and contribution grid', async ({
     nonResourceErrors,
     `console errors: ${nonResourceErrors.join('\n')}`,
   ).toEqual([]);
+});
+
+test('hotspot opens EventsFeedPanel with clickable GitHub links', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await expect(page.getByTestId('scene-canvas')).toBeAttached({
+    timeout: 15_000,
+  });
+  await expect(page.getByTestId('live-activity-book')).toBeAttached({
+    timeout: 15_000,
+  });
+
+  const hotspot = page.getByTestId('live-activity-hotspot');
+  await expect(hotspot).toBeAttached({ timeout: 15_000 });
+
+  // Activate via keyboard — focus + Enter mirrors the keyboard-first flow.
+  await hotspot.focus();
+  await page.keyboard.press('Enter');
+
+  const panel = page.getByTestId('events-feed-panel');
+  await expect(panel).toBeVisible({ timeout: 5_000 });
+
+  const links = panel.locator('a[href^="https://github.com/"]');
+  await expect(links.first()).toBeVisible();
+  expect(await links.count()).toBeGreaterThanOrEqual(10);
+
+  const firstLink = links.first();
+  await expect(firstLink).toHaveAttribute('target', '_blank');
+  await expect(firstLink).toHaveAttribute('rel', 'noopener noreferrer');
 });

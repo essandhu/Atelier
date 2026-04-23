@@ -52,6 +52,7 @@ import { StartupSequence } from '@/ui/intro/StartupSequence';
 import { ProjectPanel } from '@/ui/panels/ProjectPanel';
 import { GlobePanel } from '@/ui/panels/GlobePanel';
 import { SkillsCatalogPanel } from '@/ui/panels/SkillsCatalogPanel';
+import { EventsFeedPanel } from '@/ui/panels/EventsFeedPanel';
 import {
   timeOfDayStore,
   useResolvedTimeOfDay,
@@ -85,8 +86,12 @@ const SURFACE_COLOR = '#0f0c0a';
 
 const ActivePanelRenderer = ({
   projects,
+  githubSnapshot,
+  newEventIds,
 }: {
   projects: Project[];
+  githubSnapshot: GithubSnapshot | null;
+  newEventIds: Set<string>;
 }): React.ReactElement | null => {
   const activePanel = useSceneStore((s) => s.activePanel);
   const phase = useSceneStore((s) => s.phase);
@@ -102,6 +107,15 @@ const ActivePanelRenderer = ({
   }
   if (activePanel.kind === 'skills') {
     return <SkillsCatalogPanel onClose={close} />;
+  }
+  if (activePanel.kind === 'events') {
+    return (
+      <EventsFeedPanel
+        snapshot={githubSnapshot}
+        newEventIds={newEventIds}
+        onClose={close}
+      />
+    );
   }
   return null;
 };
@@ -272,7 +286,11 @@ export const Scene = (props: SceneProps): React.ReactElement => {
       <IntroOverlay profile={props.profile} />
       <StartupSequence lampBulbRef={lampBulbRef} />
       <LiveRegion projects={props.projects} />
-      <ActivePanelRenderer projects={props.projects} />
+      <ActivePanelRenderer
+        projects={props.projects}
+        githubSnapshot={props.githubSnapshot}
+        newEventIds={newEventIds}
+      />
     </>
   );
 };

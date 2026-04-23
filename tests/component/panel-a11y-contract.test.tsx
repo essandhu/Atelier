@@ -3,8 +3,10 @@ import { cleanup, render, screen, within } from '@testing-library/react';
 import { ProjectPanel } from '@/ui/panels/ProjectPanel';
 import { GlobePanel } from '@/ui/panels/GlobePanel';
 import { SkillsCatalogPanel } from '@/ui/panels/SkillsCatalogPanel';
+import { EventsFeedPanel } from '@/ui/panels/EventsFeedPanel';
 import { sceneStore } from '@/store/scene-store';
 import { fixtures } from '@/../tests/fixtures/projects';
+import type { GithubSnapshot } from '@/data/github/types';
 
 // Mirror of the mock used in each individual panel test file — renders the
 // radix-ui Dialog Portal inline so the content is queryable in happy-dom.
@@ -49,6 +51,31 @@ const openSkillsPanel = () => {
   });
 };
 
+const openEventsPanel = () => {
+  sceneStore.setState({
+    phase: 'open',
+    activePanel: { kind: 'events' },
+    hoveredObject: null,
+    openedAt: 0,
+  });
+};
+
+const eventsSnapshot: GithubSnapshot = {
+  fetchedAt: '2026-04-22T10:00:00.000Z',
+  username: 'essandhu',
+  contributions: [],
+  events: [
+    {
+      id: 'evt-a11y-1',
+      at: '2026-04-22T18:00:00.000Z',
+      repo: 'essandhu/twitch-chat-lab',
+      kind: 'pr_merged',
+      title: 'feat(heatmap): axis labels',
+      url: 'https://github.com/essandhu/twitch-chat-lab/pull/1',
+    },
+  ],
+};
+
 // Collect ids from every rendered element so duplicate-id violations surface
 // regardless of which element owns them. axe treats duplicate ids as a
 // serious impact; the contract test catches them before the e2e axe run.
@@ -81,6 +108,13 @@ describe('Panel a11y contract parity', () => {
       label: '<SkillsCatalogPanel>',
       open: openSkillsPanel,
       render: () => <SkillsCatalogPanel onClose={() => {}} />,
+    },
+    {
+      label: '<EventsFeedPanel>',
+      open: openEventsPanel,
+      render: () => (
+        <EventsFeedPanel snapshot={eventsSnapshot} onClose={() => {}} />
+      ),
     },
   ])('$label', ({ open, render: renderPanel }) => {
     it('renders at least one heading with a non-empty accessible name', () => {

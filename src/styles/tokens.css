@@ -30,24 +30,30 @@
  * Scene-anchor focus indicator (P9-07).
  *
  * Applied as a className on the drei `<Html>` anchor divs used for ProjectBook,
- * Globe, and SkillsCatalog hotspots. The anchor stays invisible under mouse
- * focus (outline: 0 baseline) and reveals a 2 px accent ring on :focus-visible,
- * so keyboard users get a clear target without the scene reading as chrome.
+ * Globe, SkillsCatalog, and LiveActivityBook (events) hotspots. The anchor
+ * stays invisible under mouse focus (outline: 0 baseline) and reveals a 2 px
+ * accent ring on :focus-visible, so keyboard users get a clear target without
+ * the scene reading as chrome.
  *
- * The anchor expands to an 8 px minimum box on focus so 0×0 anchors have
- * geometry for the outline to wrap. `outline-offset` keeps the ring clear of
- * the anchor itself; `border-radius` softens it to match the panel aesthetic.
+ * `!important` on opacity + outline is load-bearing: every scene anchor sets
+ * `style={{ opacity: 0 }}` inline so the hotspot is invisible at idle, and
+ * inline styles win over external stylesheet rules without `!important`.
+ * Without these markers, the focus ring computes correctly per the cascade
+ * but paints onto an opacity:0 element — invisible to the user. The Phase 9
+ * e2e test asserted only `outline-width >= 1` (a computed-style check), so
+ * this regression slipped through; `keyboard-nav.spec.ts` now also asserts
+ * computed `opacity === '1'` on :focus-visible to catch a future repeat.
  */
 .scene-focus-ring {
   outline: 0;
 }
 
 .scene-focus-ring:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--accent) !important;
   outline-offset: 4px;
   border-radius: 4px;
   min-width: 8px;
   min-height: 8px;
-  opacity: 1;
+  opacity: 1 !important;
   transition: outline-color 150ms ease-out;
 }

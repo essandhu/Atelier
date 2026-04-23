@@ -7,7 +7,8 @@ export type PanelPhase = 'closed' | 'opening' | 'open' | 'closing';
 export type ActivePanel =
   | { kind: 'project'; id: string }
   | { kind: 'skills' }
-  | { kind: 'globe' };
+  | { kind: 'globe' }
+  | { kind: 'events' };
 
 export const panelIdOf = (p: ActivePanel): string => {
   switch (p.kind) {
@@ -17,6 +18,8 @@ export const panelIdOf = (p: ActivePanel): string => {
       return 'skills';
     case 'globe':
       return 'globe';
+    case 'events':
+      return 'events';
   }
 };
 

@@ -49,6 +49,28 @@ test.describe('globe interaction', () => {
     );
   });
 
+  test('mouse click on the globe opens the location panel', async ({
+    page,
+  }) => {
+    await page.goto('/?time=evening');
+    await expect(page.getByTestId('scene-canvas')).toBeAttached({
+      timeout: 15_000,
+    });
+    const hotspot = page.getByTestId('globe-hotspot');
+    await expect(hotspot).toBeAttached({ timeout: 15_000 });
+
+    // Click at the hotspot's centre — exercises browser-native click
+    // classification (pointerdown + pointerup at same coords). Before the
+    // dedicated `onClick` handler was added, click-to-open was tied to
+    // `onPointerUp`'s 2px-jitter heuristic, which routed casual clicks
+    // into the momentum branch (no panel open).
+    await hotspot.click();
+
+    const panel = page.getByTestId('globe-panel');
+    await expect(panel).toBeVisible({ timeout: 3000 });
+    await expect(panel).toContainText(/currently based in/i);
+  });
+
   test('reduced motion disables idle rotation', async ({ browser }) => {
     const context = await browser.newContext({ reducedMotion: 'reduce' });
     const page = await context.newPage();

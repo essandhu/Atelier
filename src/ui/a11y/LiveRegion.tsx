@@ -28,19 +28,37 @@ export const LiveRegion = ({ projects }: LiveRegionProps): React.ReactElement =>
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    const activeId =
-      activePanel?.kind === 'project' ? activePanel.id : null;
+    const announce = (): string | null => {
+      if (!activePanel) {
+        return phase === 'closing' ? 'Project panel closed' : null;
+      }
+      switch (activePanel.kind) {
+        case 'project': {
+          if (phase === 'opening') {
+            const title =
+              projects.find((p) => p.id === activePanel.id)?.title ??
+              'Details';
+            return `${title} details opened`;
+          }
+          return 'Project panel closed';
+        }
+        case 'skills':
+          return phase === 'opening'
+            ? 'Skills catalog opened'
+            : 'Skills catalog closed';
+        case 'globe':
+          return phase === 'opening' ? 'Location opened' : 'Location closed';
+        case 'events':
+          return phase === 'opening'
+            ? 'Recent GitHub activity opened'
+            : 'Recent GitHub activity closed';
+      }
+    };
 
-    if (phase === 'opening') {
-      const title =
-        (activeId && projects.find((p) => p.id === activeId)?.title) ??
-        'Details';
-      setMessage(`${title} details opened`);
-    } else if (phase === 'closing') {
-      setMessage('Project panel closed');
-    } else {
-      return;
-    }
+    if (phase !== 'opening' && phase !== 'closing') return;
+    const msg = announce();
+    if (msg === null) return;
+    setMessage(msg);
 
     const timer = window.setTimeout(() => setMessage(''), CLEAR_MS);
     return () => window.clearTimeout(timer);

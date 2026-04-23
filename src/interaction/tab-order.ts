@@ -16,10 +16,10 @@ export const TAB_ORDER = {
   skipToFallback: 1,
   introBeginButton: 2,
   webcamToggle: 3,
-  // RESERVED — LiveActivityBook is not a focus stop in V1 (the book is a
-  // visual surface; its individual cells aren't keyboard-actionable yet).
-  // The slot is reserved so day-1 of "make activity interactive" doesn't
-  // need to renumber the projectBook range. Keep ahead of projectBookStart.
+  // RESERVED — the LiveActivityBook book object itself is not a focus stop
+  // (its right-page interactive surface uses the eventsFeed slot below).
+  // Keep ahead of projectBookStart in case a future revision wants to focus
+  // the book as a whole (e.g. left-page contribution drilldown).
   liveActivityBook: 10,
   projectBookStart: 100,
   // Inclusive upper bound — MAX_BOOKS = projectBookMax - projectBookStart + 1.
@@ -33,9 +33,8 @@ export const TAB_ORDER = {
   // claim 151..159 without renumbering.
   skillsCatalog: 150,
   globe: 160,
-  // RESERVED — same story for the events feed: rendered inline inside
-  // LiveActivityBook in V1, not yet a Tab stop. Wired here so the eventual
-  // EventsFeedPanel (Section 8 / Post-V1) drops in without churn.
+  // Events feed hotspot on the right page of the LiveActivityBook. Enter /
+  // Space opens the EventsFeedPanel where each entry links to GitHub.
   eventsFeed: 200,
 } as const;
 
