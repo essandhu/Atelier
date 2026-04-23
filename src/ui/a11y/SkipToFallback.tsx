@@ -11,7 +11,7 @@ const BASE: React.CSSProperties = {
   fontSize: '0.875rem',
   fontWeight: 500,
   borderRadius: '0 0 4px 0',
-  border: '2px solid var(--color-accent, #d97706)',
+  border: '2px solid var(--accent, #c77a3b)',
   zIndex: 10000,
   transform: 'translateY(-200%)',
   transition: 'transform 120ms ease-out',
