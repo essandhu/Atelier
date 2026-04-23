@@ -8,6 +8,11 @@ export const durations = {
   slow: 400,
   panel: 700,
   bookOpen: 800,
+  // Camera-dock spring settle window (§5.5). The spring driver uses τ ≈ 200 ms
+  // critically-damped so ~97% of settle has occurred by this time.
+  cameraDock: 700,
+  // Reduced-motion: snap to the dock pose in one frame (§11.5).
+  cameraDockReduced: 0,
 } as const;
 
 export const easings = {
