@@ -56,7 +56,7 @@ const focusedTestId = (page: Page): Promise<string | null> =>
 
 // Headless SwiftShader rendering is the rate-limiter here — the spring's
 // pure-math settle is <1 s, but useFrame only ticks at ~1 fps in CI.
-const DOCK_SETTLE_TIMEOUT = 30_000;
+const DOCK_SETTLE_TIMEOUT = 45_000;
 
 test.describe('camera-dock — reduced motion (single-frame snap)', () => {
   test('HeroBook: Enter under reducedMotion mounts the 2D ProjectPanel immediately', async ({
@@ -118,7 +118,7 @@ test.describe('camera-dock — full-spring flow', () => {
   test('HeroBook: dock → on-object surface → close, scene phase progresses docking → open → closed', async ({
     page,
   }) => {
-    test.setTimeout(90_000);
+    test.setTimeout(120_000);
     await page.goto('/?time=evening');
     await expect(page.getByTestId('scene-canvas')).toBeAttached({
       timeout: 15_000,
@@ -159,7 +159,7 @@ test.describe('camera-dock — full-spring flow', () => {
   test('ContactCard: dock → on-object surface → close, scene phase progresses docking → open → closed', async ({
     page,
   }) => {
-    test.setTimeout(90_000);
+    test.setTimeout(120_000);
     await page.goto('/?time=evening');
     await expect(page.getByTestId('scene-canvas')).toBeAttached({
       timeout: 15_000,
@@ -228,7 +228,7 @@ test.describe('camera-dock — keyboard overrides', () => {
   test('V while a panel is live cycles presentationMode auto → diegetic → panel → auto', async ({
     page,
   }) => {
-    test.setTimeout(90_000);
+    test.setTimeout(120_000);
     await page.goto('/?time=evening');
     await expect(page.getByTestId('scene-canvas')).toBeAttached({
       timeout: 15_000,

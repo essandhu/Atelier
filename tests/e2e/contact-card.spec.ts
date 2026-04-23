@@ -38,7 +38,7 @@ const readScenePhase = (page: Page): Promise<string> =>
     return w.__atelier?.scenePhase?.() ?? 'no-hook';
   });
 
-const DOCK_SETTLE_TIMEOUT = 30_000;
+const DOCK_SETTLE_TIMEOUT = 45_000;
 
 const MAX_TABS = 25;
 
@@ -57,6 +57,11 @@ test.describe('contact card — reduced motion fallback (fast path)', () => {
   test('Tab → Enter opens 2D ContactPanel, Escape restores focus', async ({
     browser,
   }) => {
+    // Tab traversal from body → skip → hero → project books → contact card
+    // takes ~20 tab presses, each with a round-trip to query the focused
+    // testid. Under headless Chromium the cumulative RTT pushes this past
+    // Playwright's default 30 s test budget; raise it generously.
+    test.setTimeout(60_000);
     const context = await browser.newContext({ reducedMotion: 'reduce' });
     const page = await context.newPage();
     await dismissIntro(page);
@@ -129,7 +134,7 @@ test.describe('contact card — full-spring flow', () => {
   test('Tab → Enter → dock → on-object surface → Escape restores focus', async ({
     page,
   }) => {
-    test.setTimeout(90_000);
+    test.setTimeout(120_000);
     await page.goto('/?time=evening');
     await expect(page.getByTestId('scene-canvas')).toBeAttached({
       timeout: 15_000,
