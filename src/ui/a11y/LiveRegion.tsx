@@ -29,18 +29,19 @@ export const LiveRegion = ({ projects }: LiveRegionProps): React.ReactElement =>
 
   useEffect(() => {
     const announce = (): string | null => {
-      if (!activePanel) {
-        return phase === 'closing' ? 'Project panel closed' : null;
-      }
+      // Vestigial branch — during normal flow `activePanel` is always set
+      // through `closing` (scene-store only clears it on `markClosed`).
+      // Returning null here avoids the generic Phase 9 string that used
+      // to escape if a race ever cleared activePanel mid-close.
+      if (!activePanel) return null;
       switch (activePanel.kind) {
         case 'project': {
-          if (phase === 'opening') {
-            const title =
-              projects.find((p) => p.id === activePanel.id)?.title ??
-              'Details';
-            return `${title} details opened`;
-          }
-          return 'Project panel closed';
+          const title =
+            projects.find((p) => p.id === activePanel.id)?.title ??
+            'Details';
+          return phase === 'opening'
+            ? `${title} details opened`
+            : `${title} details closed`;
         }
         case 'skills':
           return phase === 'opening'
