@@ -47,6 +47,15 @@ test('home page mounts the scene canvas with a working WebGL2 context', async ({
     (msg) =>
       !/lightmap|favicon|HEAD|vercel\/insights|MIME type|Failed to load resource/i.test(
         msg,
+      ) &&
+      // P10-13 WallPiece attempts `https://github.com/<user>.png?size=460`
+      // as the failover when `/scene/avatar.jpg` is absent; the CSP policy
+      // only whitelists the eventual 302 target (`*.githubusercontent.com`),
+      // not the redirect entry URL. The image still renders because Chrome
+      // follows the redirect, but the pre-redirect probe emits this report.
+      // Same filter as P10-19 project-book-open.
+      !/(Content Security Policy[\s\S]*github\.com)|(github\.com[\s\S]*Content Security Policy)/i.test(
+        msg,
       ),
   );
   expect(fatal, `console errors: ${fatal.join('\n')}`).toEqual([]);
