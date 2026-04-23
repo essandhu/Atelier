@@ -270,6 +270,11 @@ export const Scene = (props: SceneProps): React.ReactElement => {
     (window as unknown as Record<string, unknown>).__atelier = {
       parallaxOffset: () => parallaxStore.getState().offset,
       activeStream: () => webcamStreamStore.getState().activeStream,
+      // P10-19: expose scene-store phase so e2e specs can wait on phase
+      // transitions without racing the dock spring animation tick.
+      scenePhase: () => sceneStore.getState().phase,
+      activePanel: () => sceneStore.getState().activePanel,
+      presentationMode: () => prefsStore.getState().presentationMode,
     };
     return () => {
       delete (window as unknown as Record<string, unknown>).__atelier;

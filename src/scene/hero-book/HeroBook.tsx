@@ -231,6 +231,12 @@ export const HeroBook = ({
           aria-haspopup="dialog"
           aria-label={`Open ${project.title}`}
           data-testid="hero-book"
+          // Dockable hotspot metadata — read by `interaction/keyboard.ts`
+          // `dockableFromFocus()` to route Shift+Enter into the 2D panel
+          // form. Without these datasets the Shift+Enter branch is a no-op.
+          data-dockable="true"
+          data-panel-kind="project"
+          data-panel-id={project.id}
           className="scene-focus-ring"
           onKeyDown={onKeyDown}
           style={{ width: 0, height: 0, opacity: 0 }}

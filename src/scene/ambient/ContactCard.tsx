@@ -168,6 +168,9 @@ export const ContactCard = ({
           aria-haspopup="dialog"
           aria-label={`Contact ${profile.name} — press Enter to open`}
           data-testid="contact-card"
+          // Dockable hotspot metadata — see HeroBook for the rationale.
+          data-dockable="true"
+          data-panel-kind="contact"
           className="scene-focus-ring"
           onKeyDown={onKeyDown}
           style={{ width: 0, height: 0, opacity: 0 }}
