@@ -67,8 +67,18 @@ describe('spineDimensions', () => {
     const a = spineDimensions({ color: '#000', material: 'cloth', accent: false });
     const b = spineDimensions({ color: '#000', material: 'leather', accent: true });
     expect(a).toEqual(b);
-    expect(a.width).toBe(0.018);
-    expect(a.height).toBe(0.22);
-    expect(a.depth).toBe(0.16);
+  });
+
+  // P10-10: physical book dimensions match artist brief §5.3 — 0.022m thick,
+  // 0.20m wide, 0.16m deep. Semantics: `width` is the short (thin spine) axis
+  // that becomes the stacking-pitch when books lie flat; `height` is the book's
+  // long edge (the dimension that reads as "cover width" when stacked);
+  // `depth` is the front-to-back axis that faces the camera (carries the
+  // spine stripe).
+  it('matches the brief §5.3 physical dimensions', () => {
+    const d = spineDimensions({ color: '#000', material: 'cloth', accent: false });
+    expect(d.width).toBeCloseTo(0.022);
+    expect(d.height).toBeCloseTo(0.2);
+    expect(d.depth).toBeCloseTo(0.16);
   });
 });
