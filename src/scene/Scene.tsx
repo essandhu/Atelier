@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useMemo, useRef } from 'react';
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { Canvas } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -183,6 +183,15 @@ export const Scene = (props: SceneProps): React.ReactElement => {
   useGlobalKeyboard();
   const onPointerMissed = usePointerMissed();
 
+  // Reference-capture escape hatch: `?effects=off` skips the post-processing
+  // composer so screenshots handed to the Phase-10 artist show clean geometry
+  // without the bloom / CA / grain / grade layer the engine applies on top.
+  const [effectsDisabled, setEffectsDisabled] = useState(false);
+  useEffect(() => {
+    const q = new URL(window.location.href).searchParams.get('effects');
+    setEffectsDisabled(q === 'off');
+  }, []);
+
   const webcamOptIn = usePrefsStore((s) => s.webcamOptIn);
   const deviceOrientationOptIn = usePrefsStore(
     (s) => s.deviceOrientationOptIn,
@@ -256,7 +265,7 @@ export const Scene = (props: SceneProps): React.ReactElement => {
             projects={props.projects}
             newEventIds={newEventIds}
           />
-          <ResolvedEffects />
+          {!effectsDisabled && <ResolvedEffects />}
         </Suspense>
       </Canvas>
       <ResolvedStateMarker />
