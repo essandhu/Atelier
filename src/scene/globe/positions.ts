@@ -7,8 +7,8 @@
  * anchors the left. Desk centre at [0, 0.75, 0] with top surface at
  * y ≈ 0.79; the globe's stand sits at y = 0.86 with the sphere above it.
  * Keeping geometry constants here lets the ambient objects (coffee cup,
- * notes, plant) import the anchor so they don't overlap — same pattern as
- * `src/scene/project-books/stack-config.ts`.
+ * contact card, plant) import the anchor so they don't overlap — same
+ * pattern as `src/scene/project-books/stack-config.ts`.
  */
 export const GLOBE_RADIUS = 0.08;
 

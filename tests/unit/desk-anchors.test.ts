@@ -5,9 +5,10 @@ import {
 } from '@/scene/lamp/positions';
 import {
   COFFEE_CUP_POSITION,
+  CONTACT_CARD_POSITION,
+  CONTACT_CARD_SIZE,
   PEN_POSITION,
   PLANT_POSITION,
-  NOTES_POSITION,
 } from '@/scene/ambient/positions';
 import { GLOBE_POSITION } from '@/scene/globe/positions';
 
@@ -44,14 +45,28 @@ describe('desk anchors (P10-14)', () => {
     expect(Math.hypot(dx, dz)).toBeGreaterThan(0.5);
   });
 
-  it('Plant and notes remain on the desk surface (y ≥ 0.79) or floor by design', () => {
+  it('Plant floats above the floor and the contact card sits on the desk', () => {
     expect(PLANT_POSITION[1]).toBeGreaterThan(0);
-    expect(NOTES_POSITION[1]).toBeGreaterThanOrEqual(0.79);
+    expect(CONTACT_CARD_POSITION[1]).toBeGreaterThanOrEqual(0.79);
   });
 
   it('Pen sits within the desk footprint (|x| < 1, |z| < 0.6)', () => {
     expect(Math.abs(PEN_POSITION[0])).toBeLessThan(1);
     expect(Math.abs(PEN_POSITION[2])).toBeLessThan(0.6);
     expect(PEN_POSITION[1]).toBeGreaterThanOrEqual(0.79);
+  });
+
+  it('Contact card is placed at the brief §5.3 card row anchor', () => {
+    expect(CONTACT_CARD_POSITION[0]).toBeCloseTo(0.18);
+    expect(CONTACT_CARD_POSITION[1]).toBeCloseTo(0.79);
+    expect(CONTACT_CARD_POSITION[2]).toBeCloseTo(0.22);
+  });
+
+  it('Contact card footprint is ~0.10 × 0.15 m, 3–4 mm thick', () => {
+    // (width, thickness, depth) in metres. Width and depth match brief §5.3.
+    expect(CONTACT_CARD_SIZE[0]).toBeCloseTo(0.1, 2);
+    expect(CONTACT_CARD_SIZE[2]).toBeCloseTo(0.15, 2);
+    expect(CONTACT_CARD_SIZE[1]).toBeGreaterThanOrEqual(0.003);
+    expect(CONTACT_CARD_SIZE[1]).toBeLessThanOrEqual(0.004);
   });
 });

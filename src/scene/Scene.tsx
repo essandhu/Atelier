@@ -18,7 +18,7 @@ import { PageFlutter } from '@/scene/ambient/PageFlutter';
 import { CoffeeCup } from '@/scene/ambient/CoffeeCup';
 import { Plant } from '@/scene/ambient/Plant';
 import { Pen } from '@/scene/ambient/Pen';
-import { Notes } from '@/scene/ambient/Notes';
+import { ContactCard } from '@/scene/ambient/ContactCard';
 import { RibbonSway } from '@/scene/ambient/RibbonSway';
 import { HeroBook } from '@/scene/hero-book/HeroBook';
 import { useNewEvents } from '@/scene/live-activity/useNewEvents';
@@ -126,10 +126,12 @@ const HERO_PROJECT_ID = 'atelier';
 const ResolvedSceneContent = ({
   lampBulbRef,
   pageMeshRef,
+  profile,
   projects,
 }: {
   lampBulbRef: React.RefObject<THREE.Mesh | null>;
   pageMeshRef: React.RefObject<THREE.Mesh | null>;
+  profile: Profile;
   projects: Project[];
 }): React.ReactElement => {
   const state = useResolvedTimeOfDay();
@@ -157,7 +159,7 @@ const ResolvedSceneContent = ({
       <CoffeeCup />
       <Plant />
       <Pen />
-      <Notes />
+      <ContactCard profile={profile} tabIndex={TAB_ORDER.contactCard} />
       <RibbonSway />
       <DustMotes state={state} />
       <LampBreathe targetRef={lampBulbRef} state={state} />
@@ -264,6 +266,7 @@ export const Scene = (props: SceneProps): React.ReactElement => {
           <ResolvedSceneContent
             lampBulbRef={lampBulbRef}
             pageMeshRef={pageMeshRef}
+            profile={props.profile}
             projects={props.projects}
           />
           {!effectsDisabled && <ResolvedEffects />}

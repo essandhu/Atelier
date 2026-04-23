@@ -12,8 +12,9 @@
  * - Coffee cup  → front-left of the desk, opposite the lamp.
  * - Plant       → back-left floor anchor (outside the desk footprint).
  * - Pen         → artist's choice within the desk footprint, tilted so it
- *                 reads as "just put down" on the page of notes.
- * - Notes       → front-centre, tucked under the main reading light.
+ *                 reads as "just put down" near the contact card.
+ * - Contact card → front-centre card row, slightly right of the hero book.
+ *                  Dockable (P10-11); replaced the retired `Notes` mesh.
  */
 
 // Cup origin is the cylinder's centre, so y = desk surface + half cup height.
@@ -28,5 +29,13 @@ export const PLANT_POSITION: [number, number, number] = [-0.7, 0.8, -0.3];
 // doesn't read as perfectly-aligned-with-desk-edge (which looks staged).
 export const PEN_POSITION: [number, number, number] = [0.12, 0.793, 0.18];
 
-// Notes sit just above the desk surface (paper thickness negligible).
-export const NOTES_POSITION: [number, number, number] = [0.25, 0.792, 0.22];
+// Contact card: stray letterpress card in the front-centre card row
+// (brief §5.3). Dockable via `useDockDriver(POSES.contactCard)` — the
+// resting anchor here is the home pose the driver returns to on close.
+// The mesh origin is at the card's planar top face for UV stability, so
+// the y-coordinate is the desk surface plus a sliver for z-fight avoidance.
+export const CONTACT_CARD_POSITION: [number, number, number] = [0.18, 0.79, 0.22];
+
+// (width, thickness, depth) in metres. Footprint matches brief §5.3:
+// ~0.10 × 0.15 m card with a 3.5 mm bevelled thickness.
+export const CONTACT_CARD_SIZE: [number, number, number] = [0.1, 0.0035, 0.15];
