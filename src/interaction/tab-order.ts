@@ -6,8 +6,8 @@
  * `projectBookStart + index` up to `projectBookMax`.
  *
  * Reading order:
- *   skip → intro → webcam → project books → skills catalog → globe
- *   → (eventsFeed reserved)
+ *   skip → intro → webcam → project books → contact card → skills catalog
+ *   → globe → pinboard → (eventsFeed reserved)
  *
  * Any change here is a user-visible behaviour change — update
  * docs/keyboard-nav.md alongside.
@@ -18,23 +18,32 @@ export const TAB_ORDER = {
   webcamToggle: 3,
   // RESERVED — the LiveActivityBook book object itself is not a focus stop
   // (its right-page interactive surface uses the eventsFeed slot below).
-  // Keep ahead of projectBookStart in case a future revision wants to focus
-  // the book as a whole (e.g. left-page contribution drilldown).
+  // Retained through Phase 10 Stage A for e2e migration; will be reclaimed
+  // once P10-09 retires the book component entirely.
   liveActivityBook: 10,
   projectBookStart: 100,
   // Inclusive upper bound — MAX_BOOKS = projectBookMax - projectBookStart + 1.
   // Currently 100..107 ⇒ 8 books. Widen further by bumping this constant; the
-  // eventsFeed slot sits at 200 so there's room for ≤ 100 books before
-  // collision, but the desk metaphor breaks long before then (see
-  // docs/architecture.md §5 for the bookshelf Post-V1 plan).
+  // contactCard slot sits at 110 so there's headroom of 8 slots (108..115)
+  // before collision, though the desk metaphor breaks long before then
+  // (see docs/architecture.md §5 for the bookshelf Post-V1 plan).
   projectBookMax: 107,
-  // Phase 6 additions — slotted between the projectBookMax ceiling (107) and
-  // the reserved eventsFeed slot (200) so any future catalog sub-stops can
-  // claim 151..159 without renumbering.
+  // Phase 10 Stage A — dockable contact card sits immediately after the
+  // project-book range cap so desk-surface objects are traversed as a
+  // single group: books → card.
+  contactCard: 110,
+  // Phase 6 additions — slotted between the contactCard and the back-wall
+  // surfaces so any future catalog sub-stops can claim 151..159 without
+  // renumbering.
   skillsCatalog: 150,
   globe: 160,
-  // Events feed hotspot on the right page of the LiveActivityBook. Enter /
-  // Space opens the EventsFeedPanel where each entry links to GitHub.
+  // Phase 10 Stage A — the wall pinboard (§5.11) is a non-dockable
+  // hotspot between the desk surfaces and the reserved eventsFeed slot.
+  // Enter / Space opens the EventsFeedPanel in 2D.
+  pinboard: 170,
+  // Events feed hotspot — historically owned by the LiveActivityBook right
+  // page (retired in P10-09) and now reached via the pinboard. Slot kept
+  // reserved so any back-compat path has a stable landing.
   eventsFeed: 200,
 } as const;
 
