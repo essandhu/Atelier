@@ -51,7 +51,10 @@ test('Opening a project book under reduced motion uses the shortened path', asyn
   });
 
   await page.evaluate(() => document.body.focus());
-  await tabUntil(page, 'project-book-atelier');
+  // Atelier now lives exclusively on the HeroBook (P10-09); the first project
+  // in the stack is synapse-oms. Tabbing to it still exercises the reduced-
+  // motion book-open path on ProjectBook.
+  await tabUntil(page, 'project-book-synapse-oms');
 
   await page.keyboard.press('Enter');
 

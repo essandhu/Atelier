@@ -19,8 +19,10 @@
     "test:watch": "vitest",
     "e2e": "playwright test",
     "lh:night": "pnpm dlx @lhci/cli@0.13.x autorun",
-    "assets:build": "node scripts/asset-pipeline/compress-geometry.mjs && node scripts/asset-pipeline/compress-textures.mjs",
+    "assets:build": "node scripts/asset-pipeline/compress-geometry.mjs && node scripts/asset-pipeline/compress-textures.mjs && node scripts/fetch-github-avatar.mjs",
     "assets:build:fixture": "node scripts/asset-pipeline/compress-textures-fixture.mjs",
+    "assets:capture": "node scripts/capture-composition.mjs",
+    "assets:fetch-avatar": "node scripts/fetch-github-avatar.mjs",
     "assets:verify": "node scripts/asset-pipeline/verify-budgets.mjs",
     "bundle:verify": "node scripts/asset-pipeline/verify-bundle-size.mjs"
   },

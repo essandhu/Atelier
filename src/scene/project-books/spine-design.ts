@@ -41,9 +41,13 @@ export const spineMaterialParams = (
   };
 };
 
+// Brief §5.3 — 0.022 m thick, 0.20 m wide, 0.16 m deep. Semantics: `width`
+// is the book's thin axis (the spine thickness when stood upright, the stack
+// pitch when laid flat); `height` is the book's long edge; `depth` is the
+// spine-visible axis that faces the camera.
 const DIMENSIONS: SpineDimensions = {
-  width: 0.018,
-  height: 0.22,
+  width: 0.022,
+  height: 0.2,
   depth: 0.16,
 };
 

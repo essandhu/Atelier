@@ -11,20 +11,24 @@ import { Window } from '@/scene/Window';
 import { Globe } from '@/scene/Globe';
 import { SkillsCatalog } from '@/scene/SkillsCatalog';
 import { Bookshelf } from '@/scene/background/Bookshelf';
+import { Pinboard } from '@/scene/background/Pinboard';
 import { WallPiece } from '@/scene/background/WallPiece';
+import { deriveActivityStats } from '@/data/github/transform';
+import { useDiegeticPresentation } from '@/interaction/camera-dock/presentation';
 import { DustMotes } from '@/scene/ambient/DustMotes';
 import { LampBreathe } from '@/scene/ambient/LampBreathe';
 import { PageFlutter } from '@/scene/ambient/PageFlutter';
 import { CoffeeCup } from '@/scene/ambient/CoffeeCup';
 import { Plant } from '@/scene/ambient/Plant';
 import { Pen } from '@/scene/ambient/Pen';
-import { Notes } from '@/scene/ambient/Notes';
+import { ContactCard } from '@/scene/ambient/ContactCard';
 import { RibbonSway } from '@/scene/ambient/RibbonSway';
-import { LiveActivityBook } from '@/scene/live-activity/LiveActivityBook';
+import { HeroBook } from '@/scene/hero-book/HeroBook';
 import { useNewEvents } from '@/scene/live-activity/useNewEvents';
 import { Lightmaps } from '@/scene/lighting/Lightmaps';
 import { RealTimeLights } from '@/scene/lighting/RealTimeLights';
 import { ProjectBookStack } from '@/scene/project-books/ProjectBookStack';
+import { TAB_ORDER } from '@/interaction/tab-order';
 
 // Lazy-load post-processing out of the initial bundle (P9-03). The
 // @react-three/postprocessing + postprocessing libraries contribute
@@ -53,6 +57,7 @@ import { ProjectPanel } from '@/ui/panels/ProjectPanel';
 import { GlobePanel } from '@/ui/panels/GlobePanel';
 import { SkillsCatalogPanel } from '@/ui/panels/SkillsCatalogPanel';
 import { EventsFeedPanel } from '@/ui/panels/EventsFeedPanel';
+import { ContactPanel } from '@/ui/panels/ContactPanel';
 import {
   timeOfDayStore,
   useResolvedTimeOfDay,
@@ -84,18 +89,36 @@ export interface SceneProps {
 
 const SURFACE_COLOR = '#0f0c0a';
 
+// Dockable kinds (matches scene-store `isDockableKind`). When the visitor is
+// in diegetic presentation mode these render as `<Html transform>` surfaces
+// on the dockable object itself and the 2D panel must stay un-mounted — the
+// dual-path invariant is "exactly one DOM instance per open panel".
+const DOCKABLE_KINDS: ReadonlySet<string> = new Set([
+  'project',
+  'skills',
+  'contact',
+]);
+
 const ActivePanelRenderer = ({
   projects,
+  profile,
   githubSnapshot,
   newEventIds,
 }: {
   projects: Project[];
+  profile: Profile;
   githubSnapshot: GithubSnapshot | null;
   newEventIds: Set<string>;
 }): React.ReactElement | null => {
   const activePanel = useSceneStore((s) => s.activePanel);
   const phase = useSceneStore((s) => s.phase);
+  const presentation = useDiegeticPresentation();
   if (!activePanel || phase === 'closed') return null;
+  // Double-mount guard: skip the 2D panel when the dockable surface owns the
+  // DOM. Non-dockable kinds (globe, events) always render 2D regardless.
+  if (presentation === 'diegetic' && DOCKABLE_KINDS.has(activePanel.kind)) {
+    return null;
+  }
   const close = () => sceneStore.getState().close();
   if (activePanel.kind === 'project') {
     const project = projects.find((p) => p.id === activePanel.id);
@@ -117,44 +140,68 @@ const ActivePanelRenderer = ({
       />
     );
   }
+  if (activePanel.kind === 'contact') {
+    return <ContactPanel profile={profile} onClose={close} />;
+  }
   return null;
 };
+
+const HERO_PROJECT_ID = 'atelier';
 
 const ResolvedSceneContent = ({
   lampBulbRef,
   pageMeshRef,
-  githubSnapshot,
+  profile,
   projects,
-  newEventIds,
+  githubSnapshot,
 }: {
   lampBulbRef: React.RefObject<THREE.Mesh | null>;
   pageMeshRef: React.RefObject<THREE.Mesh | null>;
-  githubSnapshot: GithubSnapshot | null;
+  profile: Profile;
   projects: Project[];
-  newEventIds: Set<string>;
+  githubSnapshot: GithubSnapshot | null;
 }): React.ReactElement => {
   const state = useResolvedTimeOfDay();
+  // Atelier rides the desk-centre HeroBook (P10-09). Filter it out of
+  // the project-book stack so the same project isn't represented by two
+  // interactive objects. If no Atelier project is authored (e.g. a
+  // fork that drops it), the HeroBook still renders as the entry hero
+  // — but falls back to the first project in the manifest for content.
+  const hero = projects.find((p) => p.id === HERO_PROJECT_ID) ?? projects[0];
+  const stackProjects = projects.filter((p) => p.id !== hero?.id);
+  // Derive the pinboard stats from the GitHub snapshot once per snapshot
+  // change (pure transform, no I/O). The Pinboard hotspot + cards only
+  // mount when a snapshot is available — on the offline/error path the
+  // wall shows the framed WallPiece alone.
+  const activityStats = useMemo(
+    () => (githubSnapshot ? deriveActivityStats(githubSnapshot) : null),
+    [githubSnapshot],
+  );
   return (
     <Lightmaps state={state}>
       <RealTimeLights state={state} />
       <Desk />
       <Window state={state} />
       <Bookshelf />
-      <WallPiece />
+      <WallPiece avatarUrl={githubSnapshot?.avatarUrl} />
+      {githubSnapshot && activityStats ? (
+        <Pinboard
+          stats={activityStats}
+          contributions={githubSnapshot.contributions}
+          state={state}
+        />
+      ) : null}
       <Lamp ref={lampBulbRef} />
-      <LiveActivityBook
-        snapshot={githubSnapshot}
-        state={state}
-        newEventIds={newEventIds}
-        pageFlutterRef={pageMeshRef}
-      />
-      <ProjectBookStack projects={projects} />
+      {hero ? (
+        <HeroBook project={hero} tabIndex={TAB_ORDER.liveActivityBook} />
+      ) : null}
+      <ProjectBookStack projects={stackProjects} />
       <SkillsCatalog />
       <Globe />
       <CoffeeCup />
       <Plant />
       <Pen />
-      <Notes />
+      <ContactCard profile={profile} tabIndex={TAB_ORDER.contactCard} />
       <RibbonSway />
       <DustMotes state={state} />
       <LampBreathe targetRef={lampBulbRef} state={state} />
@@ -223,6 +270,11 @@ export const Scene = (props: SceneProps): React.ReactElement => {
     (window as unknown as Record<string, unknown>).__atelier = {
       parallaxOffset: () => parallaxStore.getState().offset,
       activeStream: () => webcamStreamStore.getState().activeStream,
+      // P10-19: expose scene-store phase so e2e specs can wait on phase
+      // transitions without racing the dock spring animation tick.
+      scenePhase: () => sceneStore.getState().phase,
+      activePanel: () => sceneStore.getState().activePanel,
+      presentationMode: () => prefsStore.getState().presentationMode,
     };
     return () => {
       delete (window as unknown as Record<string, unknown>).__atelier;
@@ -261,9 +313,9 @@ export const Scene = (props: SceneProps): React.ReactElement => {
           <ResolvedSceneContent
             lampBulbRef={lampBulbRef}
             pageMeshRef={pageMeshRef}
-            githubSnapshot={props.githubSnapshot}
+            profile={props.profile}
             projects={props.projects}
-            newEventIds={newEventIds}
+            githubSnapshot={props.githubSnapshot}
           />
           {!effectsDisabled && <ResolvedEffects />}
         </Suspense>
@@ -297,6 +349,7 @@ export const Scene = (props: SceneProps): React.ReactElement => {
       <LiveRegion projects={props.projects} />
       <ActivePanelRenderer
         projects={props.projects}
+        profile={props.profile}
         githubSnapshot={props.githubSnapshot}
         newEventIds={newEventIds}
       />

@@ -50,7 +50,8 @@ describe('createPointerHandlers', () => {
       kind: 'project',
       id: 'atlas',
     });
-    expect(sceneStore.getState().phase).toBe('opening');
+    // Project is a dockable kind — entry phase is `docking` (§4.3).
+    expect(sceneStore.getState().phase).toBe('docking');
   });
 
   it('second click while opening is rejected at store level (no re-entrant open)', () => {
@@ -77,6 +78,8 @@ describe('usePointerMissed', () => {
   it('returns a handler that closes an open panel', () => {
     const { result } = renderHook(() => usePointerMissed());
     sceneStore.getState().open({ kind: 'project', id: 'a' });
+    sceneStore.getState().settleDock();
+    sceneStore.getState().startOpening();
     sceneStore.getState().markOpened();
     result.current();
     expect(sceneStore.getState().phase).toBe('closing');

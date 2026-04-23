@@ -1,8 +1,8 @@
 'use client';
 
 import { useMemo } from 'react';
+import { PLANT_POSITION } from '@/scene/ambient/positions';
 
-const PLANT_POSITION: [number, number, number] = [-0.7, 0.80, -0.30];
 const POT_COLOR = '#b76f4a';
 const LEAF_COLOR = '#3e5f3a';
 const POT_HEIGHT = 0.06;

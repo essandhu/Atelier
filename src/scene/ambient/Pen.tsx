@@ -1,6 +1,7 @@
 'use client';
 
-const PEN_POSITION: [number, number, number] = [0.12, 0.793, 0.18];
+import { PEN_POSITION } from '@/scene/ambient/positions';
+
 const PEN_LENGTH = 0.12;
 const PEN_RADIUS = 0.004;
 const BODY_COLOR = '#121212';

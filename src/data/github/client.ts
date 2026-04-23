@@ -9,6 +9,8 @@ import {
 import { UserActivity, UserContributions } from '@/data/github/queries';
 import { retryFetch } from '@/data/github/retry';
 import {
+  selectPublicRepoCount,
+  selectTopRepo,
   toActivityEvents,
   toContributionDays,
 } from '@/data/github/transform';
@@ -124,5 +126,14 @@ export const fetchGithubSnapshot = async (
     username,
     contributions: toContributionDays(contributions),
     events: toActivityEvents(activity),
+    avatarUrl: avatarRedirectUrl(username),
+    topRepo: selectTopRepo(activity),
+    publicRepos: selectPublicRepoCount(activity),
   };
 };
+
+// Stable public redirect — used as the failover texture for the square
+// WallPiece (§5.11) when public/scene/avatar.jpg is missing or stale.
+// `size=460` matches the 0.4 × 0.4 m frame at high-DPI rendering.
+export const avatarRedirectUrl = (username: string): string =>
+  `https://github.com/${encodeURIComponent(username)}.png?size=460`;

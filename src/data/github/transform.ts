@@ -1,6 +1,9 @@
 import type {
   ActivityEvent,
+  ActivityStats,
   ContributionDay,
+  GithubSnapshot,
+  RepositoryNode,
   UserActivityResponse,
   UserContributionsResponse,
 } from '@/data/github/types';
@@ -116,4 +119,71 @@ export const toActivityEvents = (
   return [...prs, ...issues, ...releases]
     .sort((a, b) => (a.at < b.at ? 1 : -1))
     .slice(0, MAX_EVENTS);
+};
+
+// Extracts the {topRepo, publicRepos} summary from a raw UserActivityResponse.
+// Kept separate from `toActivityEvents` so `fetchGithubSnapshot` can populate
+// the snapshot without re-walking repositories.nodes. Ties on stargazerCount
+// fall to the first node in document order (stable pick).
+export const selectTopRepo = (
+  resp: UserActivityResponse,
+): { nameWithOwner: string; stars: number } | null => {
+  const nodes: RepositoryNode[] = resp.user?.repositories.nodes ?? [];
+  if (nodes.length === 0) return null;
+  let best = nodes[0];
+  for (let i = 1; i < nodes.length; i += 1) {
+    if (nodes[i].stargazerCount > best.stargazerCount) {
+      best = nodes[i];
+    }
+  }
+  return { nameWithOwner: best.nameWithOwner, stars: best.stargazerCount };
+};
+
+export const selectPublicRepoCount = (
+  resp: UserActivityResponse,
+): number => resp.user?.repositories.totalCount ?? 0;
+
+// Pure transform (architecture §5.3). Computed entirely from a
+// GithubSnapshot — no network I/O, no clock reads, no Date.now(). The
+// "today" anchor for `currentStreakDays` is the last entry in
+// `snapshot.contributions` (ascending by date, gap-filled upstream).
+export const deriveActivityStats = (
+  snapshot: GithubSnapshot,
+): ActivityStats => {
+  const days = snapshot.contributions;
+
+  let commits90d = 0;
+  for (const d of days) commits90d += d.count;
+
+  const prsMerged90d = snapshot.events.filter(
+    (e) => e.kind === 'pr_merged',
+  ).length;
+
+  // Trailing non-zero run anchored at the most recent day.
+  let currentStreakDays = 0;
+  for (let i = days.length - 1; i >= 0; i -= 1) {
+    if (days[i].count > 0) currentStreakDays += 1;
+    else break;
+  }
+
+  // Longest contiguous non-zero run anywhere in the window.
+  let longestStreakDays = 0;
+  let run = 0;
+  for (const d of days) {
+    if (d.count > 0) {
+      run += 1;
+      if (run > longestStreakDays) longestStreakDays = run;
+    } else {
+      run = 0;
+    }
+  }
+
+  return {
+    commits90d,
+    prsMerged90d,
+    currentStreakDays,
+    longestStreakDays,
+    topRepo: snapshot.topRepo,
+    publicRepos: snapshot.publicRepos,
+  };
 };

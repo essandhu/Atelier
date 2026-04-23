@@ -41,7 +41,7 @@ describe('<LiveRegion>', () => {
     );
   });
 
-  it('announces closed on closing', () => {
+  it('announces the project title on closing (panel-specific)', () => {
     sceneStore.setState({
       phase: 'open',
       activePanel: { kind: 'project', id: fixtures.public.id },
@@ -53,7 +53,24 @@ describe('<LiveRegion>', () => {
       sceneStore.setState({ phase: 'closing' });
     });
 
-    expect(screen.getByRole('status').textContent).toBe('Project panel closed');
+    expect(screen.getByRole('status').textContent).toBe(
+      `${fixtures.public.title} details closed`,
+    );
+  });
+
+  it('announces contact card close (panel-specific)', () => {
+    sceneStore.setState({
+      phase: 'open',
+      activePanel: { kind: 'contact' },
+      openedAt: 0,
+    });
+    render(<LiveRegion projects={[fixtures.public]} />);
+
+    act(() => {
+      sceneStore.setState({ phase: 'closing' });
+    });
+
+    expect(screen.getByRole('status').textContent).toBe('Contact closed');
   });
 
   it('clears the announcement after 1 second', () => {

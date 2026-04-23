@@ -5,8 +5,9 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { prefsStore } from '@/store/prefs-store';
 import { ambientAmplitudeFor } from '@/scene/ambient/damping';
+import { COFFEE_CUP_POSITION } from '@/scene/ambient/positions';
 
-const CUP_POSITION: [number, number, number] = [-0.35, 0.80, -0.05];
+const CUP_POSITION = COFFEE_CUP_POSITION;
 const CUP_RADIUS = 0.04;
 const CUP_HEIGHT = 0.07;
 const CUP_COLOR = '#e9dfcf';

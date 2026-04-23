@@ -35,10 +35,10 @@ const SCANNED_FILES = [
   'src/scene/ambient/CoffeeCup.tsx',
   'src/scene/ambient/Pen.tsx',
   'src/scene/ambient/Plant.tsx',
-  'src/scene/ambient/Notes.tsx',
+  'src/scene/ambient/ContactCard.tsx',
   'src/scene/background/Bookshelf.tsx',
   'src/scene/background/WallPiece.tsx',
-  'src/scene/live-activity/LiveActivityBook.tsx',
+  'src/scene/hero-book/HeroBook.tsx',
   'src/scene/project-books/ProjectBook.tsx',
 ];
 
@@ -105,9 +105,10 @@ describe('Scene geometry budget (P9-02)', () => {
 
   it('scans every listed source file', () => {
     // Sanity: the scan produced hits for every file that ships primitive
-    // geometry in the segmentable set. Files like Desk / Notes / Window are
-    // box/plane-only and produce zero segmentable hits — that's fine, they're
-    // in the scan list only to guarantee the audit is exhaustive.
+    // geometry in the segmentable set. Files like Desk / ContactCard /
+    // Window are box/plane-only and produce zero segmentable hits — that's
+    // fine, they're in the scan list only to guarantee the audit is
+    // exhaustive.
     expect(allHits.length).toBeGreaterThan(0);
   });
 

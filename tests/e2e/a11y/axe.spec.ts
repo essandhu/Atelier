@@ -82,14 +82,26 @@ test.describe('Accessibility — root route', () => {
 });
 
 test.describe('Accessibility — panels', () => {
+  // P10-16 wires these panels through `useDockDriver`; under SwiftShader
+  // the dock spring takes ~15 s to settle, so the Enter→panel-visible wait
+  // needs the reduced-motion shortcut to hit the 2D `PanelFrame` path
+  // immediately (see `useDiegeticPresentation`). Axe runs the same
+  // a11y tree in either path.
+  test.beforeEach(async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+  });
+
   test('project panel open — zero serious/critical', async ({ page }) => {
     await dismissIntro(page);
     await page.goto('/?time=evening');
     await waitForScene(page);
-    await expect(page.getByTestId('project-book-atelier')).toBeAttached({
+    // Atelier is now the desk-centre HeroBook (P10-09); its open-panel a11y
+    // tree is the same `project-panel-atelier` as before because both the
+    // HeroBook and a project book share the ProjectPanel body.
+    await expect(page.getByTestId('hero-book')).toBeAttached({
       timeout: 15_000,
     });
-    await page.getByTestId('project-book-atelier').focus();
+    await page.getByTestId('hero-book').focus();
     await page.keyboard.press('Enter');
     await expect(page.getByTestId('project-panel-atelier')).toBeVisible();
     await runAxe(page, 'project panel open');

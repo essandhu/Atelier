@@ -59,7 +59,11 @@ describe('<SkillsCatalogPanel>', () => {
     chip.click();
     expect(closeSpy).toHaveBeenCalled();
 
-    vi.advanceTimersByTime(800);
+    // Post-P10-19 the chip handler subscribes to the store and waits for
+    // `phase === 'closed'` before firing open(). Simulate PanelFrame's
+    // markClosed that normally fires at durations.med; the subscription
+    // callback then invokes open() synchronously.
+    sceneStore.getState().markClosed();
     expect(openSpy).toHaveBeenCalledWith(
       expect.objectContaining({ kind: 'project' }),
     );

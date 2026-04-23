@@ -18,6 +18,31 @@ export interface GithubSnapshot {
   username: string;
   contributions: ContributionDay[];
   events: ActivityEvent[];
+  // Stable redirect — https://github.com/{username}.png?size=460. Renders
+  // on the square WallPiece (§5.11). The local public/scene/avatar.jpg
+  // fetched at build/ISR time is the primary texture; this URL is the
+  // runtime failover if the local JPEG is missing.
+  avatarUrl: string;
+  // Max-stargazer repo for the owner, derived at snapshot time from
+  // `UserActivityResponse.user.repositories.nodes`. Surfaces on the
+  // Pinboard "top repo" card (§5.11). Null when the owner has no public
+  // repositories or the fixture/offline path carries no repo info.
+  topRepo: { nameWithOwner: string; stars: number } | null;
+  // Public repository count for the owner — pulled from
+  // `UserActivityResponse.user.repositories.totalCount`, not from
+  // `nodes.length` (which is capped by pagination).
+  publicRepos: number;
+}
+
+// Derived stats displayed on the wall pinboard (§5.11). Computed by a
+// pure transform from a GithubSnapshot — no additional network I/O.
+export interface ActivityStats {
+  commits90d: number;
+  prsMerged90d: number;
+  currentStreakDays: number;
+  longestStreakDays: number;
+  topRepo: { nameWithOwner: string; stars: number } | null;
+  publicRepos: number;
 }
 
 export interface UserContributionsResponse {
@@ -72,6 +97,9 @@ export interface UserActivityResponse {
   user: {
     pullRequests: { nodes: PullRequestNode[] };
     issues: { nodes: IssueNode[] };
-    repositories: { nodes: RepositoryNode[] };
+    // `totalCount` reflects the public repo count for the owner; `nodes`
+    // is capped by the paginated `first: N` request. `publicRepos` on
+    // ActivityStats reads from `totalCount`, not `nodes.length`.
+    repositories: { totalCount: number; nodes: RepositoryNode[] };
   } | null;
 }

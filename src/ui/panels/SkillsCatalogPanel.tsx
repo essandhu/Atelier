@@ -104,10 +104,32 @@ const SkillRow = ({
     .filter((p): p is Project => Boolean(p));
 
   const openProject = (slug: string): void => {
+    // Close the skills panel, then open the target project once the store
+    // has fully settled to `closed`. Subscribing to the phase transition
+    // replaces the old fixed-duration setTimeout which raced with
+    // PanelFrame's own markClosed timer (durations.med = 250ms) and the
+    // P10-16 dock path (`open → closing → closed → docking → docked →
+    // opening → open`). Waiting on the store guarantees `open()` is only
+    // invoked when `phase === 'closed'` accepts it. Fallback timer
+    // (durations.panel + med) defends against a no-store-update edge case.
     sceneStore.getState().close();
+    let settled = false;
+    const unsub = sceneStore.subscribe((state, prev) => {
+      if (settled) return;
+      if (prev.phase !== 'closed' && state.phase === 'closed') {
+        settled = true;
+        unsub();
+        sceneStore.getState().open({ kind: 'project', id: slug });
+      }
+    });
     window.setTimeout(() => {
-      sceneStore.getState().open({ kind: 'project', id: slug });
-    }, durations.panel);
+      if (settled) return;
+      settled = true;
+      unsub();
+      if (sceneStore.getState().phase === 'closed') {
+        sceneStore.getState().open({ kind: 'project', id: slug });
+      }
+    }, durations.panel + durations.med);
   };
 
   return (

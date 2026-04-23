@@ -78,11 +78,17 @@ const events = KIND_CYCLE.map((kind, i) => {
   };
 });
 
+// Pinboard "top repo" card — deterministic max-stargazer pick from the same
+// repo set referenced by the events above. `publicRepos` mirrors the owner's
+// totalCount. Both fields land on GithubSnapshot post-P10-02.
 const snapshot = {
   fetchedAt: FETCHED_AT,
   username: USERNAME,
   contributions,
   events,
+  avatarUrl: `https://github.com/${encodeURIComponent(USERNAME)}.png?size=460`,
+  topRepo: { nameWithOwner: 'octocat/atelier', stars: 321 },
+  publicRepos: REPOS.length,
 };
 
 writeFileSync(OUT, JSON.stringify(snapshot, null, 2) + '\n');

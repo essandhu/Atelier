@@ -7,10 +7,10 @@ import { prefsStore } from '@/store/prefs-store';
 import { ambientAmplitudeFor } from '@/scene/ambient/damping';
 import { getAccent } from '@/ui/controls/accent';
 
-// Spine y-coordinate matches LiveActivityBook (BOOK_POSITION y=0.793, cover
-// top at ~0.796). Hardcoded here rather than imported to avoid a cross-module
-// dependency on the live-activity bundle — if the book moves, update the two
-// constants together (see src/scene/live-activity/LiveActivityBook.tsx).
+// Spine y-coordinate matches the desk-centre hero book (HERO_BOOK_POSITION
+// y=0.79, cover top at ~0.796). Hardcoded here rather than imported to avoid
+// a cross-module dependency on the hero-book bundle — if the book moves,
+// update the two constants together (see src/scene/hero-book/positions.ts).
 const RIBBON_ANCHOR: [number, number, number] = [-0.05, 0.796, 0.12];
 const RIBBON_LENGTH = 0.18;
 const RIBBON_WIDTH = 0.012;
