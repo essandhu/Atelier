@@ -16,9 +16,9 @@ import {
  * expectations.
  */
 describe('stack-config (P10-10 vertical stack)', () => {
-  it('centres the stack at (0.30, ~, -0.10) per brief §5.3', () => {
-    expect(STACK_CENTER_X).toBeCloseTo(0.3);
-    expect(STACK_Z).toBeCloseTo(-0.1);
+  it('centres the stack at (0.50, ~, 0.15) — front-right empty desk space', () => {
+    expect(STACK_CENTER_X).toBeCloseTo(0.5);
+    expect(STACK_Z).toBeCloseTo(0.15);
   });
 
   it('exposes BOOK_THICKNESS = 0.022 m (brief §5.3)', () => {

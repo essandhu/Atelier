@@ -23,12 +23,13 @@ export const MAX_BOOKS =
 export const BOOK_GAP = 0.004; // legacy 4 mm between spines (unused in P10-10)
 export const BOOK_THICKNESS = 0.022;
 
-// Desk centre at [0, 0.75, 0] with top surface at y ≈ 0.79. The stack's
-// front-right seat is at (0.30, desk-surface, -0.10) per brief §5.3 so books
-// read in the lower-right quadrant of the composition while the globe takes
-// the front-left (P10-14).
-export const STACK_CENTER_X = 0.3;
-export const STACK_Z = -0.1;
+// Desk centre at [0, 0.75, 0] with top surface at y ≈ 0.79. The stack sits
+// in the front-right empty desk space, clear of the skills-catalog drawer
+// at (0.45, _, -0.15) and the lamp base at (0.65, _, -0.25). The
+// front-forward position also reads as intentionally placed at the reading
+// edge of the desk — same reading logic as the contact card row.
+export const STACK_CENTER_X = 0.5;
+export const STACK_Z = 0.15;
 export const STACK_BOTTOM_Y = 0.79;
 
 /**
@@ -37,6 +38,11 @@ export const STACK_BOTTOM_Y = 0.79;
  * even and odd spines catch the lamp from opposite sides — simple rule, more
  * colour variance than a uniform tilt, documented here so the artist-brief
  * closeout can reproduce it.
+ *
+ * Applied around the world Y (vertical) axis: with books authored flat per
+ * artist brief §5.3.1 (X spine-length, Y thickness, Z page-width), a Y-yaw
+ * rotates each book around the vertical in the stack — spines catch
+ * different glances of light without disturbing the stack-up pitch.
  */
 export const YAW_DEG = 8;
 export const yawForIndex = (i: number): number =>

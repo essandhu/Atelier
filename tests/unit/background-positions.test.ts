@@ -37,7 +37,7 @@ describe('background positions (Phase 7)', () => {
 
 describe('Phase 10 wall piece — square avatar frame', () => {
   it('anchors the wall piece at the Phase 10 brief §5.6 position', () => {
-    expect(WALL_PIECE_POSITION).toEqual([0, 1.75, -2.35]);
+    expect(WALL_PIECE_POSITION).toEqual([0, 1.5, -2.35]);
   });
 
   it('uses a square 0.4 × 0.4 m size', () => {
@@ -48,7 +48,7 @@ describe('Phase 10 wall piece — square avatar frame', () => {
 
 describe('Phase 10 pinboard anchor', () => {
   it('sits below the wall piece on the back wall', () => {
-    expect(PINBOARD_POSITION).toEqual([0, 1.25, -2.3]);
+    expect(PINBOARD_POSITION).toEqual([0, 1.0, -2.3]);
     expect(PINBOARD_POSITION[1]).toBeLessThan(WALL_PIECE_POSITION[1]);
   });
 

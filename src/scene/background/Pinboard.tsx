@@ -181,9 +181,17 @@ const CORKBOARD_COLOR = '#8a6a42';
 // Frame trim around the cork — matches WallPiece palette for continuity.
 const CORKBOARD_FRAME_COLOR = '#ede5d3';
 const CORKBOARD_FRAME_INSET = 0.01;
-// Cards sit 3 mm forward of the corkboard surface; pinheads another 1 mm.
-const CARD_FORWARD_OFFSET = 0.003;
-const PIN_FORWARD_OFFSET = CARD_FORWARD_OFFSET + 0.004;
+// Cards sit 3 mm forward of the corkboard SURFACE (which is at +bd/2 on the
+// centred cork mesh). The surface offset is added in world space inside the
+// card's local frame — it lifts the card proud of the cork's front face so
+// the 2D typography isn't z-embedded in the cork box. Pinheads add another
+// 4 mm so their spherical silhouette reads clearly against the cork.
+const CORK_HALF_DEPTH = 0.01;
+const CARD_FORWARD_OFFSET = CORK_HALF_DEPTH + 0.003;
+// Pin head sits 4 mm forward of the card surface (local-frame offset, not
+// cumulative with CARD_FORWARD_OFFSET since the pin mesh is a child of the
+// card's already-offset parent group).
+const PIN_FORWARD_OFFSET = 0.004;
 const CARD_WIDTH = 0.28;
 const CARD_HEIGHT = 0.18;
 const CARD_THICKNESS = 0.0008;
@@ -404,7 +412,9 @@ const PinboardCard = ({
               justifyContent:
                 card.kind === 'heatmap' ? 'flex-end' : 'space-between',
               alignItems: 'flex-start',
-              color: 'var(--color-ink)',
+              // Paper cards carry dark ink — `--color-ink` is tuned for the
+              // dark scene surface and disappears on the cream card stock.
+              color: '#1f1510',
               position: 'relative',
               overflow: 'hidden',
             }}
@@ -464,8 +474,7 @@ const PinboardCard = ({
                     fontFamily: 'var(--font-sans)',
                     fontSize: '10px',
                     fontWeight: 400,
-                    color:
-                      'color-mix(in srgb, var(--color-ink) 60%, transparent)',
+                    color: 'rgba(31, 21, 16, 0.6)',
                   }}
                 >
                   {card.subtitle}

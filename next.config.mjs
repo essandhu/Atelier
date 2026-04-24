@@ -12,7 +12,7 @@ const cspDirectives = [
   "default-src 'self'",
   scriptSrc,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https://*.githubusercontent.com",
+  "img-src 'self' data: blob: https://github.com https://*.githubusercontent.com",
   "font-src 'self' data:",
   "connect-src 'self' https://api.github.com https://*.vercel-insights.com https://*.sentry.io",
   "frame-ancestors 'none'",

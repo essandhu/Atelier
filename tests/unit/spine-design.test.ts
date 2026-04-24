@@ -69,16 +69,17 @@ describe('spineDimensions', () => {
     expect(a).toEqual(b);
   });
 
-  // P10-10: physical book dimensions match artist brief §5.3 — 0.022m thick,
-  // 0.20m wide, 0.16m deep. Semantics: `width` is the short (thin spine) axis
-  // that becomes the stacking-pitch when books lie flat; `height` is the book's
-  // long edge (the dimension that reads as "cover width" when stacked);
-  // `depth` is the front-to-back axis that faces the camera (carries the
-  // spine stripe).
-  it('matches the brief §5.3 physical dimensions', () => {
+  // P11: dimensions updated to the artist brief §5.3.1 flat-at-rest
+  // orientation — X (width) is the spine-length axis (0.20 m), Y
+  // (height) is the thickness / stack pitch (0.022 m), Z (depth) is
+  // the short edge of the book's top face (0.16 m). The physical
+  // footprint is unchanged; only the axis semantics changed to match
+  // how the artist's GLB will be authored (books authored flat, no
+  // runtime compensation rotation).
+  it('matches the artist brief §5.3.1 physical dimensions', () => {
     const d = spineDimensions({ color: '#000', material: 'cloth', accent: false });
-    expect(d.width).toBeCloseTo(0.022);
-    expect(d.height).toBeCloseTo(0.2);
+    expect(d.width).toBeCloseTo(0.2);
+    expect(d.height).toBeCloseTo(0.022);
     expect(d.depth).toBeCloseTo(0.16);
   });
 });

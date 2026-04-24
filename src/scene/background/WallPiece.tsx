@@ -98,12 +98,27 @@ export const WallPiece = ({
     [texture],
   );
 
+  // `meshBasicMaterial` is unlit — the avatar renders at its authored pixel
+  // values regardless of the back-wall lighting. The Lambertian path made
+  // the texture near-black under evening / night lightmaps, and pushing
+  // emissive high enough to compensate overdrove the tone-mapper and blew
+  // the frame out to pure white. Unlit avoids both failure modes at the
+  // cost of not responding to scene lighting — acceptable for a wall
+  // artwork meant to read consistently across time-of-day states.
+  // Light sampling on the back wall is weak under evening / night lightmaps,
+  // so the framed avatar renders near-black with a pure Lambertian material.
+  // An emissive map + moderate intensity lifts the texture out of the
+  // shadows. Intensity is tuned low enough that the HDR tone-mapper doesn't
+  // clamp it to white.
   const innerMaterial = useMemo(() => {
     if (texture) {
       return (
         <meshStandardMaterial
           map={texture}
-          roughness={0.85}
+          emissiveMap={texture}
+          emissive="#ffffff"
+          emissiveIntensity={0.25}
+          roughness={0.9}
           metalness={0.0}
         />
       );
@@ -111,6 +126,8 @@ export const WallPiece = ({
     return (
       <meshStandardMaterial
         color={INNER_PLACEHOLDER}
+        emissive={INNER_PLACEHOLDER}
+        emissiveIntensity={0.25}
         roughness={0.9}
         metalness={0.0}
       />

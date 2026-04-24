@@ -106,6 +106,7 @@ export const HeroBook = ({
     POSES.heroBook,
     { position: HERO_BOOK_POSITION, rotation: HERO_BOOK_ROTATION },
     reducedMotion,
+    isActive,
   );
 
   const handlers = createPointerHandlers(project.id);

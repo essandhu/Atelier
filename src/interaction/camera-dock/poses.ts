@@ -20,10 +20,16 @@ const HELD_AT_CHEST_TILT_X = (-15 * Math.PI) / 180; // negative tilts top toward
 export const POSES: Record<DockableKind, ReadingPose> = {
   // Books lift from the stack and tilt toward the viewer. Off-centre to
   // the right so the hero book remains visible on the left while a
-  // project book is open.
+  // project book is open. With books authored flat (artist brief §5.3.1
+  // — X spine-length, Y thickness, Z page-width, page normal at +Y),
+  // rotating +π/2 around world X maps the book's page face (+Y local)
+  // onto world +Z (toward camera). `HELD_AT_CHEST_TILT_X` then tips the
+  // far edge slightly back so the spread reads as "held out to viewer"
+  // rather than perpendicular to the view axis. Per-book yaw is dropped
+  // at dock so every project presents at the same angle.
   projectBook: {
     position: [0.12, HELD_AT_CHEST_Y, HELD_AT_CHEST_Z],
-    rotation: [HELD_AT_CHEST_TILT_X, 0, 0],
+    rotation: [Math.PI / 2 + HELD_AT_CHEST_TILT_X, 0, 0],
     surfaceNode: 'projectBook:page',
     // Roughly 2:3 portrait — matches the visible open-book aspect.
     domSize: { w: 420, h: 560 },

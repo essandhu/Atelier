@@ -22,19 +22,30 @@ import { durations } from '@/ui/motion/tokens';
 const HOVER_LIFT = 0.003;
 const PULL_Z = 0.03;
 const HOVER_GLOW = 0.1;
+// Cover flip pivots on the spine edge at z = -halfD (back edge of the
+// book's page-width axis) and rotates around world X. Flipping by +π
+// swings the cover from lying on the top face (closed book) to hanging
+// below the spine — pages are visible above where the cover used to be.
 const COVER_FLIP = Math.PI;
-const FACE_ROTATE = -Math.PI / 2;
 
 export interface ProjectBookProps {
   project: Project;
   stackIndex: number;
   position: [number, number, number];
+  // Euler (radians) that reorients the upright-authored geometry into its
+  // flat-stacked world frame. Applied to an inner group INSIDE `dockRef` so
+  // the dock driver can write world-space target transforms without the
+  // stack rotation warping them — otherwise a world target like
+  // `[0.12, 1.3, 1.6]` gets reinterpreted through the rotated parent frame
+  // and lands at the bookshelf.
+  stackRotation: [number, number, number];
   tabIndex: number;
 }
 
 export const ProjectBook = ({
   project,
   position,
+  stackRotation,
   tabIndex,
 }: ProjectBookProps): React.ReactElement => {
   // `dockRef` is the outermost group — driven by `useDockDriver` when this
@@ -83,8 +94,9 @@ export const ProjectBook = ({
   useDockDriver(
     dockRef,
     POSES.projectBook,
-    { position, rotation: [0, 0, 0] },
+    { position, rotation: stackRotation },
     reducedMotion,
+    isActive,
   );
 
   // Diegetic body gate. Mount the `<Html transform>` on the right page
@@ -144,9 +156,10 @@ export const ProjectBook = ({
       }
     }
 
-    // `outerRef` is now an inner child of the dock-driven group; its
-    // writes are relative to the outer `dockRef`. Hover + pull-Z compose
-    // additively with the dock translate.
+    // `outerRef` is an inner child of the dock-driven group; its writes
+    // compose additively with the dock translate. Hover lifts along local Y
+    // (book thickness axis) and pull-Z nudges along local Z (away from the
+    // stack) when opening.
     const outer = outerRef.current;
     if (outer) {
       outer.position.set(
@@ -154,13 +167,15 @@ export const ProjectBook = ({
         HOVER_LIFT * a.hover,
         PULL_Z * a.open,
       );
-      const rotate = reducedMotion ? 0 : FACE_ROTATE * a.open;
-      outer.rotation.y = rotate;
     }
 
     const cover = coverPivotRef.current;
     if (cover) {
-      cover.rotation.y = COVER_FLIP * a.open;
+      // Cover flips around its local X axis (the spine hinge). Reduced
+      // motion snaps; normal motion interpolates via `a.open`.
+      cover.rotation.x = reducedMotion
+        ? COVER_FLIP * (a.direction === 'reverse' ? 0 : 1)
+        : COVER_FLIP * a.open;
     }
 
     const mat = spineMatRef.current;
@@ -180,7 +195,7 @@ export const ProjectBook = ({
   const halfD = dims.depth / 2;
 
   return (
-    <group ref={dockRef} position={position}>
+    <group ref={dockRef} position={position} rotation={stackRotation}>
       <group ref={outerRef}>
         <group {...handlers}>
           {/* Pages block (thickest interior). */}
@@ -191,27 +206,32 @@ export const ProjectBook = ({
             <meshStandardMaterial color="#f2ead8" roughness={0.95} />
           </mesh>
 
-          {/* Cover pivot rotates around the spine hinge at +X edge of the book. */}
-          <group ref={coverPivotRef} position={[halfW, 0, 0]}>
+          {/* Cover pivot at the spine hinge — the −Z edge of the book's
+              top face. Rotating around local X swings the cover from
+              lying on top of the pages (closed) to hanging behind the
+              spine (open), which is the motion a real hardcover makes
+              when opened flat on a desk. */}
+          <group ref={coverPivotRef} position={[0, 0, -halfD]}>
             <mesh
               castShadow
               receiveShadow
-              position={[-halfW, 0, 0]}
+              position={[0, dims.height * 0.5 + 0.001, halfD]}
             >
-              <boxGeometry args={[dims.width, dims.height, dims.depth]} />
+              <boxGeometry args={[dims.width, dims.height * 0.4, dims.depth]} />
               <meshStandardMaterial
                 color={project.spine.color}
                 roughness={baseSpineParams.roughness}
                 metalness={baseSpineParams.metalness}
               />
             </mesh>
-            {/* Spine stripe on the -Z face of the cover. */}
+            {/* Spine stripe — sits on the cover's trailing edge (the −Z
+                side of the cover as authored, which is the spine). */}
             <mesh
-              position={[-halfW, 0, -halfD + 0.001]}
+              position={[0, dims.height * 0.5 + 0.001, 0.001]}
               castShadow
             >
               <boxGeometry
-                args={[dims.width * 1.02, dims.height, 0.002]}
+                args={[dims.width * 1.02, dims.height * 0.4, 0.002]}
               />
               <meshStandardMaterial
                 ref={spineMatRef}
@@ -225,9 +245,11 @@ export const ProjectBook = ({
           </group>
         </group>
 
-        {/* Named right-page surface group. Origin sits above the pages
-            block on the local +Y axis — the page that faces the camera
-            after the cover flips. Matches `POSES.projectBook.surfaceNode`. */}
+        {/* Named page-surface group. Origin sits above the pages block on
+            the local +Y axis (the book's thickness direction) — the face
+            the reader sees once the cover flips out of the way. Its +Y
+            normal is the page's outward normal in bind pose, matching
+            artist brief §5.3.1 `projectBook:page` semantics. */}
         <group
           name="projectBook:page"
           position={[0, dims.height / 2 + 0.0005, 0]}

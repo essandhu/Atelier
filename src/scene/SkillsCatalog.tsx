@@ -64,6 +64,7 @@ export const SkillsCatalog = (): React.ReactElement => {
     POSES.skillsCatalog,
     { position: SKILLS_CATALOG_POSITION, rotation: [0, 0, 0] },
     reducedMotion,
+    isSkillsActive,
   );
 
   // Diegetic body gate. The drawer-slide hover animation is purely

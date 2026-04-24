@@ -15,12 +15,12 @@ export const BOOKSHELF_SIZE: [number, number, number] = [1.6, 1.8, 0.3];
 // Phase 10 brief §5.6 — square avatar frame on the centre back wall. The
 // texture is authored from `public/scene/avatar.jpg` (P10-03 fetch script)
 // with a runtime failover to the GitHub redirect URL.
-export const WALL_PIECE_POSITION: [number, number, number] = [0.0, 1.75, -2.35];
+export const WALL_PIECE_POSITION: [number, number, number] = [0.0, 1.5, -2.35];
 export const WALL_PIECE_SIZE: [number, number] = [0.4, 0.4];
 
 // Phase 10 §5.11 — corkboard pinboard hosting four live-activity cards.
 // Sits below the avatar frame on the centre back wall. 2 cm deep so it
 // reads as a real object under raking window light, 5 cm in front of the
 // wall piece plane so the board + pins cast a subtle drop shadow.
-export const PINBOARD_POSITION: [number, number, number] = [0.0, 1.25, -2.3];
+export const PINBOARD_POSITION: [number, number, number] = [0.0, 1.0, -2.3];
 export const PINBOARD_SIZE: [number, number, number] = [0.8, 0.5, 0.02];

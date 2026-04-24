@@ -41,13 +41,20 @@ export const spineMaterialParams = (
   };
 };
 
-// Brief §5.3 — 0.022 m thick, 0.20 m wide, 0.16 m deep. Semantics: `width`
-// is the book's thin axis (the spine thickness when stood upright, the stack
-// pitch when laid flat); `height` is the book's long edge; `depth` is the
-// spine-visible axis that faces the camera.
+// Artist brief §5.3.1 — 0.20 × 0.022 × 0.16 m. Semantics
+// updated to the contract's "flat-at-rest" orientation:
+//
+//   width (X)  — spine-length axis; the long edge of the closed book
+//   height (Y) — thickness; the stack pitch when books stack vertically
+//   depth (Z)  — the short edge of the closed book's top face (page width)
+//
+// These match the axes the runtime expects from the artist's GLB, so
+// the Stage-A primitive and the Stage-B delivered mesh share one frame.
+// Previously `width` was the thin axis and `height` was the long edge;
+// that swap was the P10 composition bug fixed in P10-18/19.
 const DIMENSIONS: SpineDimensions = {
-  width: 0.022,
-  height: 0.2,
+  width: 0.2,
+  height: 0.022,
   depth: 0.16,
 };
 

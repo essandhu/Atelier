@@ -213,12 +213,20 @@ export interface DockHookPose {
  *
  * Reads the scene phase via `sceneStore.getState()` (no render subscription)
  * so the hook does not rerender on phase changes — §5.1 concurrency model.
+ *
+ * `isActive` routes the dock animation to the single object that owns the
+ * active panel. Without this gate every dockable mount animates toward its
+ * own pose whenever ANY panel opens — each caller subscribes independently
+ * so the driver has no other way to discriminate. Passive objects stay
+ * pinned at their home pose so initial composition is preserved across
+ * open/close cycles.
  */
 export const useDockDriver = (
   objectRef: React.RefObject<THREE.Object3D | null>,
   pose: DockHookPose,
   homePose: DockHookPose,
   reducedMotion: boolean,
+  isActive: boolean,
 ): void => {
   const stateRef = useRef<DockState>(
     makeInitialState(homePose.position, homePose.rotation),
@@ -238,6 +246,17 @@ export const useDockDriver = (
   useFrame((_, delta) => {
     const obj = objectRef.current;
     if (!obj) return;
+
+    // Passive objects freeze at home: pin the transform + keep stateRef
+    // aligned so the next activation starts from home (not a stale pose).
+    if (!isActive) {
+      obj.position.set(homePose.position[0], homePose.position[1], homePose.position[2]);
+      obj.rotation.set(homePose.rotation[0], homePose.rotation[1], homePose.rotation[2]);
+      stateRef.current = makeInitialState(homePose.position, homePose.rotation);
+      stateRef.current.settled = true;
+      return;
+    }
+
     const phase = sceneStore.getState().phase;
     // Target flips between the pose (docking) and home (closing). Other
     // phases freeze the driver.

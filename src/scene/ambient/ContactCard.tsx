@@ -94,6 +94,7 @@ export const ContactCard = ({
       rotation: [0, 0, 0],
     },
     reducedMotion,
+    isContactActive,
   );
 
   const handlers = createPointerHandlers({ kind: 'contact' });

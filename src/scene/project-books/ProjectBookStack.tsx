@@ -18,22 +18,11 @@ export interface ProjectBookStackProps {
   projects: Project[];
 }
 
-// The ProjectBook's inner geometry is authored in an "upright" frame (thin X
-// = spine thickness, tall Y = long edge, Z = depth). To stack books flat we
-// wrap each instance in a group whose Euler re-orients local axes to world:
-//
-//   book-X (thin, 0.022) → world Y (vertical — the stack-pitch axis)
-//   book-Y (long, 0.20)  → world X (book's cover reads wide from the camera)
-//   book-Z (depth, 0.16) → world Z (spine stripe ends up on the +Z face,
-//                                    i.e. toward the camera)
-//
-// With Three.js's default XYZ Euler order (v' = Rx * Ry * Rz * v), the
-// composite `[0, π + yaw, π/2]` applies Z+90° first (laying the book flat),
-// then Y+180° (flipping the spine stripe from the back face to the front),
-// then the per-book yaw on top. See stack-config.yawForIndex for the yaw
-// pattern and the unit test in stack-config.test.ts for numeric coverage.
-const STACK_ROT_X = 0;
-const STACK_ROT_Z = Math.PI / 2;
+// Project books are authored flat per artist brief §5.3.1 — X is the
+// spine-length axis, Y is the thin stack-pitch axis, Z is the page-width
+// axis. No compensating rotation is needed at stack time; each book sits
+// in the stack with identity rotation plus a per-book yaw around world Y
+// for visual variety.
 
 export const ProjectBookStack = ({
   projects,
@@ -56,18 +45,14 @@ export const ProjectBookStack = ({
         />
       </Html>
       {visible.map((project, i) => (
-        <group
+        <ProjectBook
           key={project.id}
+          project={project}
+          stackIndex={i}
           position={[STACK_CENTER_X, bookYForIndex(i), STACK_Z]}
-          rotation={[STACK_ROT_X, Math.PI + yawForIndex(i), STACK_ROT_Z]}
-        >
-          <ProjectBook
-            project={project}
-            stackIndex={i}
-            position={[0, 0, 0]}
-            tabIndex={TAB_ORDER.projectBookStart + i}
-          />
-        </group>
+          stackRotation={[0, yawForIndex(i), 0]}
+          tabIndex={TAB_ORDER.projectBookStart + i}
+        />
       ))}
     </group>
   );

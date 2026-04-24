@@ -51,6 +51,10 @@ playwright/.cache/
 
 # generated asset artifacts (keep source glbs/ktx2 out of git, build artifacts excluded)
 public/scene/**/*.draco.glb
+# Artist-delivered interactive GLBs live here; the source .blend is not
+# version-controlled and the delivered .glb is treated the same way.
+# Validation still runs against them in CI on machines that have them.
+public/scene/models/*.glb
 # GitHub avatar — fetched at build time by scripts/fetch-github-avatar.mjs.
 # WallPiece falls back to GithubSnapshot.avatarUrl (the public redirect)
 # when this file is missing, so the absence of a checked-in binary is safe.
