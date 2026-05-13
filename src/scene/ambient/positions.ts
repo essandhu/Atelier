@@ -24,11 +24,15 @@ export const COFFEE_CUP_POSITION: [number, number, number] = [-0.3, 0.8, -0.05];
 
 // Plant: floor-standing terracotta pot, west of the desk. Pot origin is the
 // cylinder centre, so y = half the pot height (pot bottom at world y = 0,
-// pot top at y ≈ 0.20). x is just outside the desk's left edge (|x|=1.0) so
-// the pot reads as "beside the desk" not "under it"; z is recessed enough
-// that the foliage gets caught by the window light. Stage-A placeholder per
-// brief §5.5 — artist owns the final XYZ.
-export const PLANT_POSITION: [number, number, number] = [-1.05, 0.1, -0.45];
+// pot top at y ≈ 0.20). x sits beyond the desk's left edge (|x|>1.0) so the
+// camera ray to the pot bypasses the desk slab on the left; z = -0.45 keeps
+// the plant in the desk-depth zone so the line of sight from camera crosses
+// y=0.79 forward of the desk's near face (under-desk visible through the
+// gap), making the pot fully visible from below the desk-front edge. The
+// upper foliage is partially occluded by the desk's top-left corner — which
+// reads naturally as "plant tucked beside the desk". Stage-A placeholder
+// per brief §5.5 — artist owns the final XYZ.
+export const PLANT_POSITION: [number, number, number] = [-1.3, 0.1, -0.45];
 
 // Pen: centred-ish within the desk footprint, tilted 25° around Y so it
 // doesn't read as perfectly-aligned-with-desk-edge (which looks staged).
