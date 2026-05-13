@@ -8,9 +8,11 @@
  * whose origin is at their base) or offset by a half-height for cylinder /
  * box primitives authored around their centre.
  *
- * Layout (brief §5.3):
+ * Layout (brief §5.3 / §5.5):
  * - Coffee cup  → front-left of the desk, opposite the lamp.
- * - Plant       → back-left floor anchor (outside the desk footprint).
+ * - Plant       → floor-standing, west of the desk on the window side
+ *                 (outside the desk footprint). Stage-A placeholder per
+ *                 brief §5.5 — the artist proposes the final XYZ.
  * - Pen         → artist's choice within the desk footprint, tilted so it
  *                 reads as "just put down" near the contact card.
  * - Contact card → front-centre card row, slightly right of the hero book.
@@ -20,10 +22,13 @@
 // Cup origin is the cylinder's centre, so y = desk surface + half cup height.
 export const COFFEE_CUP_POSITION: [number, number, number] = [-0.3, 0.8, -0.05];
 
-// Plant sits on the floor, not the desk — kept at its prior anchor since the
-// new front-left globe doesn't overlap it (plant is at |x| = 0.7, globe is
-// at |x| = 0.65 but at +Z=0.25 vs plant's -Z=-0.3).
-export const PLANT_POSITION: [number, number, number] = [-0.7, 0.8, -0.3];
+// Plant: floor-standing terracotta pot, west of the desk. Pot origin is the
+// cylinder centre, so y = half the pot height (pot bottom at world y = 0,
+// pot top at y ≈ 0.20). x is just outside the desk's left edge (|x|=1.0) so
+// the pot reads as "beside the desk" not "under it"; z is recessed enough
+// that the foliage gets caught by the window light. Stage-A placeholder per
+// brief §5.5 — artist owns the final XYZ.
+export const PLANT_POSITION: [number, number, number] = [-1.05, 0.1, -0.45];
 
 // Pen: centred-ish within the desk footprint, tilted 25° around Y so it
 // doesn't read as perfectly-aligned-with-desk-edge (which looks staged).

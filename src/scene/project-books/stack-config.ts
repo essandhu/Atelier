@@ -25,9 +25,9 @@ export const BOOK_THICKNESS = 0.022;
 
 // Desk centre at [0, 0.75, 0] with top surface at y ≈ 0.79. The stack sits
 // in the front-right empty desk space, clear of the skills-catalog drawer
-// at (0.45, _, -0.15) and the lamp base at (0.65, _, -0.25). The
-// front-forward position also reads as intentionally placed at the reading
-// edge of the desk — same reading logic as the contact card row.
+// (rear-of-centre at (0.45, _, -0.15)) and the lamp base at (0.65, _, -0.25).
+// The front-forward position also reads as intentionally placed at the
+// reading edge of the desk — same reading logic as the contact card row.
 export const STACK_CENTER_X = 0.5;
 export const STACK_Z = 0.15;
 export const STACK_BOTTOM_Y = 0.79;

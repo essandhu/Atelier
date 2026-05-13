@@ -45,8 +45,17 @@ describe('desk anchors (P10-14)', () => {
     expect(Math.hypot(dx, dz)).toBeGreaterThan(0.5);
   });
 
-  it('Plant floats above the floor and the contact card sits on the desk', () => {
+  it('Plant sits on the floor beside the desk, not on the desk top', () => {
+    // Pot origin is the cylinder's centre, so y is positive but small —
+    // pot bottom lands at the floor (y=0), per brief §5.5 floor-standing.
     expect(PLANT_POSITION[1]).toBeGreaterThan(0);
+    expect(PLANT_POSITION[1]).toBeLessThan(0.5);
+    const outsideDeskFootprint =
+      Math.abs(PLANT_POSITION[0]) > 1 || Math.abs(PLANT_POSITION[2]) > 0.6;
+    expect(outsideDeskFootprint).toBe(true);
+  });
+
+  it('Contact card sits on the desk top', () => {
     expect(CONTACT_CARD_POSITION[1]).toBeGreaterThanOrEqual(0.79);
   });
 
