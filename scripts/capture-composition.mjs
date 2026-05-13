@@ -2,10 +2,15 @@
 //
 // Loads the scene at each of the four time-of-day states with post-processing
 // disabled (`?effects=off`, landed in commit e388b1d) and writes one PNG per
-// state into the MAIN workspace's `docs/phase-10-artist-brief/captures/`
-// tree. `docs/` is gitignored in the main workspace — so the captures live
-// outside git entirely, which is the documented convention per the artist
-// brief §12.1 reference-capture package.
+// state per viewport into the MAIN workspace's
+// `docs/phase-10-artist-brief/captures/` tree. `docs/` is gitignored in the
+// main workspace — so the captures live outside git entirely, which is the
+// documented convention per the artist brief §12 reference-capture package.
+//
+// Outputs (per brief §9.1 — both desktop and mobile FOV):
+//   captures/{state}.png            — 1600 × 1000, drives FOV 35° (BASE_FOV)
+//   captures/mobile/{state}.png     — 390 × 844, drives FOV 39° + 12% Z-pull
+//                                     via `useIsNarrowViewport` (≤480 px)
 //
 // Usage:
 //   # In one shell, start the dev server:
@@ -26,10 +31,10 @@
 // - Imports the `chromium` launcher off `@playwright/test`. The test runner
 //   is already a devDependency and re-exports the browser-automation API,
 //   so no extra package is needed for a one-shot capture.
-// - Viewport 1600 × 1000 matches the brief's reference-capture dimensions
-//   (desktop 35° FOV, per §5.1) — the mobile FOV captures aren't covered
-//   by this script; the artist brief §12.1 flags that a full package would
-//   include mobile too, but Stage A sign-off needs desktop first.
+// - Mobile FOV is purely viewport-width-driven — `src/lib/use-narrow-viewport.ts`
+//   matches `(max-width: 480px)`, and `src/scene/Camera.tsx` swaps to
+//   FOV 39° + 12% Z-scale when narrow. So the mobile capture just needs
+//   a 390-wide context; no app code or query param changes.
 // - Waits for `[data-testid="scene-canvas"]` to attach, then sleeps 2 s so
 //   the HeroBook/ContactCard/etc. dock-driver home poses settle before the
 //   frame grab.
@@ -66,6 +71,14 @@ const DEFAULT_OUTPUT = resolve(
 
 const STATES = /** @type {const} */ (['morning', 'day', 'evening', 'night']);
 
+// Two viewports per brief §9.1 ("blockout from the camera position at both
+// desktop and mobile FOV"). Desktop drives FOV 35°; mobile (width ≤ 480 px)
+// drives FOV 39° + 12% Z-pull via `useIsNarrowViewport`.
+const VIEWPORTS = /** @type {const} */ ([
+  { name: 'desktop', width: 1600, height: 1000, subdir: '' },
+  { name: 'mobile', width: 390, height: 844, subdir: 'mobile' },
+]);
+
 const parseArgs = (argv) => {
   const out = { port: 3000, output: DEFAULT_OUTPUT };
   for (const arg of argv) {
@@ -80,7 +93,7 @@ const parseArgs = (argv) => {
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
-const captureState = async (page, { baseURL, state, output }) => {
+const captureState = async (page, { baseURL, state, file }) => {
   const url = `${baseURL}/?time=${state}&effects=off`;
   console.log(`[capture] ${state} → ${url}`);
   // First page hit under Next.js dev can take ~30–60 s to compile; accept
@@ -96,9 +109,13 @@ const captureState = async (page, { baseURL, state, output }) => {
     state: 'attached',
     timeout: 120_000,
   });
-  // Startup animation window (lamp warmup, dock home-pose settle).
-  await wait(2000);
-  const file = resolve(output, `${state}.png`);
+  // Startup animation window. The lamp-warmup ramp peaks at 1.5 s for
+  // night state and the dock-driver home-pose settle layers on top; under
+  // headless SwiftShader the first useFrame writes lag the canvas attach
+  // by another beat. Empirically, 2 s leaves the canvas at SURFACE_COLOR
+  // on cold runs; 4 s is the smallest reliable margin observed in the
+  // capture probe (scripts/_probe.mjs reference).
+  await wait(4000);
   await page.screenshot({ path: file, fullPage: false });
   console.log(`[capture] ${state} → ${file}`);
 };
@@ -108,30 +125,40 @@ const main = async () => {
   const baseURL = `http://localhost:${port}`;
   console.log(`[capture] dev server expected at ${baseURL}`);
   console.log(`[capture] writing to ${output}`);
-  await mkdir(output, { recursive: true });
 
   const browser = await chromium.launch();
   try {
-    const context = await browser.newContext({
-      viewport: { width: 1600, height: 1000 },
-      // Match the artist-brief capture convention — no post-processing means
-      // no motion-driven post fx either; the 2 s settle is enough without
-      // also forcing reduced-motion here.
-    });
-    // Install the hasSeenIntro flag BEFORE any navigation so the IntroOverlay
-    // never renders on first paint. Same approach as
-    // `tests/e2e/fixtures/dismiss-intro.ts` — lets scene-canvas mount as soon
-    // as React commits the tree.
-    await context.addInitScript(() => {
-      try {
-        localStorage.setItem('atelier:prefs:hasSeenIntro', 'true');
-      } catch {
-        /* private browsing — noop */
+    for (const viewport of VIEWPORTS) {
+      const viewportOutput = viewport.subdir
+        ? resolve(output, viewport.subdir)
+        : output;
+      await mkdir(viewportOutput, { recursive: true });
+      console.log(
+        `[capture] ${viewport.name} ${viewport.width}×${viewport.height} → ${viewportOutput}`,
+      );
+      const context = await browser.newContext({
+        viewport: { width: viewport.width, height: viewport.height },
+        // Match the artist-brief capture convention — no post-processing means
+        // no motion-driven post fx either; the 2 s settle is enough without
+        // also forcing reduced-motion here.
+      });
+      // Install the hasSeenIntro flag BEFORE any navigation so the IntroOverlay
+      // never renders on first paint. Same approach as
+      // `tests/e2e/fixtures/dismiss-intro.ts` — lets scene-canvas mount as soon
+      // as React commits the tree.
+      await context.addInitScript(() => {
+        try {
+          localStorage.setItem('atelier:prefs:hasSeenIntro', 'true');
+        } catch {
+          /* private browsing — noop */
+        }
+      });
+      const page = await context.newPage();
+      for (const state of STATES) {
+        const file = resolve(viewportOutput, `${state}.png`);
+        await captureState(page, { baseURL, state, file });
       }
-    });
-    const page = await context.newPage();
-    for (const state of STATES) {
-      await captureState(page, { baseURL, state, output });
+      await context.close();
     }
   } finally {
     await browser.close();
